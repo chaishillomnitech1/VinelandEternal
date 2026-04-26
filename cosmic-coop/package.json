@@ -1,0 +1,15 @@
+{
+  "name": "cosmic-coop",
+  "version": "1.0.0",
+  "description": "VinelandEternal Cosmic Co-Op — heart map and grant automation",
+  "main": "heart-map.js",
+  "scripts": {
+    "heart-map": "node heart-map.js",
+    "grants": "python grant-automation.py --action list",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "license": "MIT"
+}

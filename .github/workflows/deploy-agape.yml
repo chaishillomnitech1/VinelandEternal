@@ -1,0 +1,270 @@
+name: Deploy Agape — VinelandEternal CI/CD
+
+on:
+  push:
+    branches: [main, "copilot/**"]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Runs daily at 05:00 UTC (Vineland Dawn Pulse)
+    - cron: "0 5 * * *"
+  workflow_dispatch:
+
+# ---------------------------------------------------------------------------
+# Permissions — minimal required set
+# ---------------------------------------------------------------------------
+permissions:
+  contents: read
+
+jobs:
+  # -------------------------------------------------------------------------
+  # 1. Lint & static analysis
+  # -------------------------------------------------------------------------
+  lint:
+    name: Lint (Python + JS)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install Python linting tools
+        run: pip install flake8
+
+      - name: Flake8 — IoT Agape module
+        run: flake8 iot-agape/ --max-line-length=100 --ignore=E501,W503
+
+      - name: Flake8 — Drone Alchemy module
+        run: flake8 drone-alchemy/ --max-line-length=100 --ignore=E501,W503
+
+      - name: Flake8 — Zaire Axis module
+        run: flake8 zaire-axis/ --max-line-length=100 --ignore=E501,W503
+
+      - name: Flake8 — Cosmic Co-Op module
+        run: flake8 cosmic-coop/ --max-line-length=100 --ignore=E501,W503
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Node linting tools
+        run: npm install -g eslint
+
+      - name: ESLint — Drone Alchemy
+        run: |
+          echo '{"env":{"node":true,"es2022":true},"parserOptions":{"ecmaVersion":2022},"rules":{"no-unused-vars":"warn","no-console":"off"}}' > /tmp/.eslintrc.json
+          eslint drone-alchemy/flight-mint.js --no-eslintrc -c /tmp/.eslintrc.json || true
+
+      - name: ESLint — AR Harvest Visor
+        run: |
+          eslint ar-harvest-visor/gold-rivers.js --no-eslintrc -c /tmp/.eslintrc.json || true
+
+      - name: ESLint — Cosmic Co-Op
+        run: |
+          eslint cosmic-coop/heart-map.js --no-eslintrc -c /tmp/.eslintrc.json || true
+
+  # -------------------------------------------------------------------------
+  # 2. Python unit tests
+  # -------------------------------------------------------------------------
+  test-python:
+    name: Python Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          pip install flask paho-mqtt fastapi uvicorn sqlalchemy httpx requests pulp
+
+      - name: Run sensor dashboard tests
+        run: |
+          python -c "
+          import sys, importlib.util
+          spec = importlib.util.spec_from_file_location('sensor_dashboard', 'iot-agape/sensor-dashboard.py')
+          m = importlib.util.module_from_spec(spec)
+          sys.modules['sensor_dashboard'] = m
+          spec.loader.exec_module(m)
+          assert m._compute_agape_value(85, 72, 92) == 82, 'Agape score mismatch'
+          assert m._compute_agape_value(100, 100, 100) == 100, 'Agape max failed'
+          assert m._compute_agape_value(0, 0, 0) == 0, 'Agape zero failed'
+          client = m.app.test_client()
+          resp = client.get('/api/agape/tray1')
+          assert resp.status_code == 200
+          assert resp.get_json()['tray_id'] == 'tray1'
+          assert client.get('/api/agape/nonexistent').status_code == 404
+          assert len(client.get('/api/agape').get_json()) == len(m.sensors)
+          print('sensor-dashboard.py: all tests passed')
+          "
+
+      - name: Run grid optimizer tests
+        run: |
+          python -c "
+          import sys, importlib.util
+          spec = importlib.util.spec_from_file_location('grid_optimizer', 'drone-alchemy/grid-optimizer.py')
+          m = importlib.util.module_from_spec(spec)
+          sys.modules['grid_optimizer'] = m
+          spec.loader.exec_module(m)
+          d = m.haversine_km(39.4862, -75.0255, 39.9526, -75.1652)
+          assert 40 < d < 80, f'Haversine out of range: {d}'
+          c = m.carbon_saved_g(5.0, 500.0)
+          assert c > 0
+          print(f'grid-optimizer.py: haversine={d:.1f} km, carbon_saved={c:.1f} g — passed')
+          "
+
+      - name: Run grant automation tests
+        run: |
+          python -c "
+          import sys, importlib.util
+          spec = importlib.util.spec_from_file_location('grant_automation', 'cosmic-coop/grant-automation.py')
+          m = importlib.util.module_from_spec(spec)
+          sys.modules['grant_automation'] = m
+          spec.loader.exec_module(m)
+          payload = m.build_application_payload(m.GRANTS['scbgp'], m.ApplicantProfile())
+          assert payload['finalized'] is True
+          assert 'applicant' in payload
+          assert len(payload['project']['crops']) > 0
+          print('grant-automation.py: payload structure valid — passed')
+          "
+
+      - name: Run zaire ledger API tests
+        run: |
+          python -c "
+          import sys, importlib.util
+          from fastapi.testclient import TestClient
+          spec = importlib.util.spec_from_file_location('ledger_api', 'zaire-axis/ledger_api.py')
+          m = importlib.util.module_from_spec(spec)
+          sys.modules['ledger_api'] = m
+          spec.loader.exec_module(m)
+          client = TestClient(m.app)
+          assert client.get('/health').status_code == 200
+          r = client.post('/harvests', json={
+            'tray_id': 'tray1', 'crop_type': 'Basil', 'harvest_g': 200.0,
+            'water_ml': 100.0, 'sunlight_lux': 8000.0, 'soil_moisture': 70.0,
+            'agape_value': 92.0
+          })
+          assert r.status_code == 201, r.text
+          eid = r.json()['id']
+          r = client.post(f'/tokens?harvest_event_id={eid}&zaire_balance=2.5')
+          assert r.status_code == 201, r.text
+          tid = r.json()['token_id']
+          assert client.get(f'/tokens/{tid}').status_code == 200
+          assert client.get('/balance').status_code == 200
+          assert client.get('/metrics/agape').status_code == 200
+          print('ledger_api.py: all API tests passed')
+          "
+
+  # -------------------------------------------------------------------------
+  # 3. Node.js tests
+  # -------------------------------------------------------------------------
+  test-node:
+    name: Node.js Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install drone-alchemy Node dependencies
+        run: npm install --save-exact
+        working-directory: drone-alchemy
+
+      - name: Test heart-map.js
+        run: |
+          node -e "
+          const { adaptSchedule, shiftTime, BASE_SCHEDULE, buildJSON } = require('./cosmic-coop/heart-map.js');
+          const t1 = shiftTime('08:30', 30);
+          if (t1 !== '09:00') throw new Error('shiftTime failed: ' + t1);
+          const t2 = shiftTime('23:45', 30);
+          if (t2 !== '23:59') throw new Error('shiftTime clamp failed: ' + t2);
+          const highSurplus = adaptSchedule(BASE_SCHEDULE, { surplusCount: 4, dayOfWeek: 1 });
+          const harvestBlock = highSurplus.find(b => b.domain === 'harvest');
+          if (!harvestBlock.label.includes('HIGH SURPLUS')) throw new Error('Harvest label not updated');
+          const sunday = adaptSchedule(BASE_SCHEDULE, { surplusCount: 0, dayOfWeek: 0 });
+          if (!sunday.filter(b => b.label.startsWith('[Rest Day]')).length) throw new Error('Sunday rest mode not applied');
+          const map = buildJSON(BASE_SCHEDULE, [], { surplusCount: 2, dayOfWeek: 2 }, new Date());
+          if (!map.daily_rhythm || !Array.isArray(map.daily_rhythm)) throw new Error('buildJSON structure invalid');
+          console.log('heart-map.js: all tests passed');
+          "
+
+      - name: Test flight-mint.js (dry-run / mock mode)
+        run: |
+          node -e "
+          const { mintHarvestToken } = require('./drone-alchemy/flight-mint.js');
+          const flight = {
+            flight_id: 'test-001', tray_id: 'tray1', crop_type: 'Basil',
+            surplus_g: 300, distance_km: 2.5, carbon_saved_g: 90, agape_value: 95,
+            recipient: '0x0000000000000000000000000000000000000001',
+          };
+          mintHarvestToken(flight).then(result => {
+            if (!result.tokenURI) throw new Error('tokenURI missing');
+            if (!result.tokenURI.startsWith('ipfs://')) throw new Error('tokenURI not IPFS: ' + result.tokenURI);
+            console.log('flight-mint.js: dry-run passed', result.tokenURI);
+          }).catch(err => { throw err; });
+          "
+
+  # -------------------------------------------------------------------------
+  # 4. SQL schema validation
+  # -------------------------------------------------------------------------
+  test-sql:
+    name: SQL Schema Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate agape-ledger.sql (SQLite)
+        run: |
+          sqlite3 /tmp/agape-test.db < iot-agape/agape-ledger.sql
+          sqlite3 /tmp/agape-test.db "SELECT COUNT(*) FROM trays;" | grep -q "^5$"
+          echo "agape-ledger.sql: schema valid, 5 seed trays"
+
+      - name: Validate infinite-tracker.sql (SQLite)
+        run: |
+          sqlite3 /tmp/infinite-test.db < zaire-axis/infinite-tracker.sql
+          sqlite3 /tmp/infinite-test.db "SELECT COUNT(*) FROM operators;" | grep -q "^1$"
+          echo "infinite-tracker.sql: schema valid, 1 seed operator"
+
+  # -------------------------------------------------------------------------
+  # 5. Deploy to Vercel (production — main branch only)
+  # -------------------------------------------------------------------------
+  deploy:
+    name: Deploy to Vercel
+    runs-on: ubuntu-latest
+    needs: [test-python, test-node, test-sql]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy via Vercel CLI
+        run: |
+          if [ -z "${{ secrets.VERCEL_TOKEN }}" ]; then
+            echo "VERCEL_TOKEN not set — skipping Vercel deployment."
+            echo "Add VERCEL_TOKEN, VERCEL_ORG_ID, and VERCEL_PROJECT_ID to repository secrets to enable auto-deploy."
+          else
+            npm install -g vercel
+            vercel --token "${{ secrets.VERCEL_TOKEN }}" \
+                   --yes \
+                   --prod \
+                   --env DASHBOARD_URL="${{ secrets.DASHBOARD_URL }}"
+          fi
+        env:
+          VERCEL_ORG_ID:     ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}

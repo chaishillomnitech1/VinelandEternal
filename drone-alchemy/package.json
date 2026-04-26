@@ -1,0 +1,20 @@
+{
+  "name": "drone-alchemy",
+  "version": "1.0.0",
+  "description": "VinelandEternal Drone Alchemy Grid — flight minting and route optimisation",
+  "main": "flight-mint.js",
+  "scripts": {
+    "start": "node flight-mint.js",
+    "optimize": "node grid-optimizer-runner.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "axios": "^1.7.2",
+    "ethers": "^6.13.1",
+    "form-data": "^4.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "license": "MIT"
+}

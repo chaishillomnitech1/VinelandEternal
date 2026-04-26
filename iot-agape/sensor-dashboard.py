@@ -78,7 +78,7 @@ def agape_metrics(tray_id: str):
     """Return the latest sensor metrics for a single tray."""
     data = sensors.get(tray_id)
     if data is None:
-        return jsonify({"error": f"Tray '{tray_id}' not found", "status": "Diamond-Guild Intact"}), 404
+        return jsonify({"error": f"Tray '{tray_id}' not found", "status": "not_found"}), 404
     return jsonify({"tray_id": tray_id, **data})
 
 

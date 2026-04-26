@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VinelandEternal — Agape Harvest Visor</title>
+
+  <!-- A-Frame WebXR / WebAR runtime -->
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <!-- AR.js for marker-based AR (optional — degrades gracefully in desktop browser) -->
+  <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    /* HUD overlay — shown when A-Frame scene is not in full-screen XR */
+    #hud {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      z-index: 999;
+      font-family: 'Courier New', monospace;
+      color: #ffd700;
+      text-shadow: 0 0 8px #ffd700;
+      pointer-events: none;
+    }
+    #hud h1  { font-size: 1.1rem; margin-bottom: .4rem; letter-spacing: .08em; }
+    #hud .badge {
+      display: inline-block;
+      background: rgba(0,0,0,.55);
+      border: 1px solid #ffd700;
+      border-radius: 4px;
+      padding: .15rem .5rem;
+      font-size: .75rem;
+      margin: .15rem .1rem;
+    }
+
+    /* Tray cards panel */
+    #tray-panel {
+      position: fixed;
+      bottom: 1rem;
+      left: 1rem;
+      right: 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: .5rem;
+      z-index: 999;
+      pointer-events: none;
+    }
+    .tray-card {
+      background: rgba(0,0,0,.65);
+      border: 1px solid #ffd700;
+      border-radius: 6px;
+      padding: .4rem .7rem;
+      color: #fff;
+      font-family: 'Courier New', monospace;
+      font-size: .7rem;
+      min-width: 110px;
+    }
+    .tray-card .tray-name { color: #ffd700; font-weight: bold; margin-bottom: .2rem; }
+    .bar { height: 4px; border-radius: 2px; margin: 2px 0; }
+    .bar-water  { background: #4fc3f7; }
+    .bar-soil   { background: #81c784; }
+    .bar-sun    { background: #fff176; }
+    .ready  { border-color: #69f0ae; }
+    .caution{ border-color: #ffb74d; }
+    .alert  { border-color: #ef5350; }
+  </style>
+</head>
+<body>
+
+  <!-- ------------------------------------------------------------------ -->
+  <!-- HUD                                                                 -->
+  <!-- ------------------------------------------------------------------ -->
+  <div id="hud">
+    <h1>🌱 Agape Harvest Visor</h1>
+    <span class="badge" id="badge-trays">Trays: —</span>
+    <span class="badge" id="badge-surplus">Surplus: —</span>
+    <span class="badge" id="badge-agape">Avg Agape: —</span>
+  </div>
+
+  <!-- ------------------------------------------------------------------ -->
+  <!-- Tray cards                                                          -->
+  <!-- ------------------------------------------------------------------ -->
+  <div id="tray-panel"></div>
+
+  <!-- ------------------------------------------------------------------ -->
+  <!-- A-Frame 3-D scene                                                   -->
+  <!-- ------------------------------------------------------------------ -->
+  <a-scene
+    id="ar-scene"
+    embedded
+    arjs="sourceType: webcam; debugUIEnabled: false;"
+    renderer="logarithmicDepthBuffer: true; antialias: true;"
+    vr-mode-ui="enabled: false"
+    style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:1;">
+
+    <!-- Ambient + directional lighting -->
+    <a-light type="ambient"     color="#ffffff" intensity="0.6"></a-light>
+    <a-light type="directional" color="#ffd700" intensity="0.8" position="1 2 1"></a-light>
+
+    <!-- Gold river particle system (decorative, always visible) -->
+    <a-entity id="gold-rivers" position="0 0 -3"></a-entity>
+
+    <!-- Tray AR markers will be injected by gold-rivers.js -->
+
+    <a-entity camera></a-entity>
+  </a-scene>
+
+  <!-- ------------------------------------------------------------------ -->
+  <!-- Gold Rivers visualisation + dashboard data loader                  -->
+  <!-- ------------------------------------------------------------------ -->
+  <script src="gold-rivers.js"></script>
+
+</body>
+</html>

@@ -30,7 +30,7 @@ VinelandEternal/
 │   ├── visor-overlay.html    # WebAR (A-Frame + Three.js)
 │   └── gold-rivers.js        # Energetic value visualization
 ├── zaire-axis/               # Infinite Granularity Tracking
-│   ├── ledger-api.py         # QFS-mimic REST API (FastAPI)
+│   ├── ledger_api.py         # QFS-mimic REST API (FastAPI)
 │   └── infinite-tracker.sql  # Atom-level ScrollVerse ledger
 ├── cosmic-coop/              # USA/Global Hubs
 │   ├── heart-map.js          # Dynamic daily rhythm generator
@@ -74,7 +74,7 @@ Open `ar-harvest-visor/visor-overlay.html` in a WebXR-compatible browser.
 ```bash
 cd zaire-axis
 pip install fastapi uvicorn
-uvicorn ledger-api:app --reload
+uvicorn ledger_api:app --reload
 # Visit http://localhost:8000/docs
 ```
 
