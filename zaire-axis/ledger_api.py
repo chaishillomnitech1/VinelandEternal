@@ -13,11 +13,11 @@ Usage:
 
 import uuid
 from datetime import datetime, timezone
-from typing import List, Optional
+from typing import Generator, List, Optional
 
 from eth_account import Account
 from eth_account.messages import encode_defunct
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy import (
     Column, DateTime, Float, Integer, String, Text,
@@ -111,7 +111,7 @@ app = FastAPI(
 )
 
 
-def get_db():
+def get_db() -> Generator:
     db = SessionLocal()
     try:
         yield db
@@ -235,16 +235,14 @@ def health():
 # --- Harvest events ---------------------------------------------------------
 
 @app.get("/harvests", response_model=List[HarvestOut], tags=["Harvests"])
-def list_harvests(skip: int = 0, limit: int = 50):
+def list_harvests(skip: int = 0, limit: int = 50, db=Depends(get_db)):
     """List recent harvest events."""
-    db = next(get_db())
     return db.query(HarvestEvent).order_by(HarvestEvent.harvested_at.desc()).offset(skip).limit(limit).all()
 
 
 @app.post("/harvests", response_model=HarvestOut, status_code=201, tags=["Harvests"])
-def create_harvest(harvest_in: HarvestIn):
+def create_harvest(harvest_in: HarvestIn, db=Depends(get_db)):
     """Record a new harvest event."""
-    db = next(get_db())
     event = HarvestEvent(**harvest_in.model_dump())
     db.add(event)
     db.commit()
@@ -255,16 +253,14 @@ def create_harvest(harvest_in: HarvestIn):
 # --- Tokens -----------------------------------------------------------------
 
 @app.get("/tokens", response_model=List[TokenOut], tags=["Tokens"])
-def list_tokens(skip: int = 0, limit: int = 50):
+def list_tokens(skip: int = 0, limit: int = 50, db=Depends(get_db)):
     """List all Harvest IS Tokens."""
-    db = next(get_db())
     return db.query(PolToken).order_by(PolToken.minted_at.desc()).offset(skip).limit(limit).all()
 
 
 @app.get("/tokens/{token_id}", response_model=TokenOut, tags=["Tokens"])
-def get_token(token_id: str):
+def get_token(token_id: str, db=Depends(get_db)):
     """Retrieve a specific Harvest IS Token."""
-    db = next(get_db())
     token = db.get(PolToken, token_id)
     if not token:
         raise HTTPException(status_code=404, detail="Token not found")
@@ -272,9 +268,8 @@ def get_token(token_id: str):
 
 
 @app.post("/tokens", response_model=TokenOut, status_code=201, tags=["Tokens"])
-def mint_token(harvest_event_id: int, zaire_balance: float = 1.0):
+def mint_token(harvest_event_id: int, zaire_balance: float = 1.0, db=Depends(get_db)):
     """Mint a new Harvest IS Token for a recorded harvest event."""
-    db = next(get_db())
     event = db.get(HarvestEvent, harvest_event_id)
     if not event:
         raise HTTPException(status_code=404, detail="Harvest event not found")
@@ -304,9 +299,8 @@ def mint_token(harvest_event_id: int, zaire_balance: float = 1.0):
 # --- Balances ---------------------------------------------------------------
 
 @app.get("/balance", response_model=List[BalanceOut], tags=["Zaire Ledger"])
-def all_balances():
+def all_balances(db=Depends(get_db)):
     """Current Zaire ∞ balance summary per beneficiary."""
-    db = next(get_db())
     rows = db.execute(
         text(
             "SELECT beneficiary_id, "
@@ -322,9 +316,8 @@ def all_balances():
 # --- Agape metrics ----------------------------------------------------------
 
 @app.get("/metrics/agape", response_model=List[AgapeMetric], tags=["Metrics"])
-def agape_metrics():
+def agape_metrics(db=Depends(get_db)):
     """Agape value aggregates by crop type."""
-    db = next(get_db())
     rows = db.execute(
         text(
             "SELECT crop_type, "
@@ -352,7 +345,7 @@ def agape_metrics():
 # --- Claim protocol ---------------------------------------------------------
 
 @app.post("/claim", response_model=ClaimOut, tags=["Claims"])
-def claim_surplus(req: ClaimRequest):
+def claim_surplus(req: ClaimRequest, db=Depends(get_db)):
     """
     Claim surplus abundance for a tray via wallet-signature verification.
 
@@ -386,7 +379,6 @@ def claim_surplus(req: ClaimRequest):
         )
 
     # 2. Look up the most recent harvest event for the requested tray
-    db = next(get_db())
     latest_harvest = (
         db.query(HarvestEvent)
         .filter(HarvestEvent.tray_id == req.tray_id)
