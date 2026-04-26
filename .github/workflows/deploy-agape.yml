@@ -86,7 +86,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install flask paho-mqtt fastapi uvicorn sqlalchemy httpx requests pulp
+          pip install flask paho-mqtt fastapi uvicorn sqlalchemy httpx requests pulp eth-account gitpython networkx
 
       - name: Run sensor dashboard tests
         run: |
@@ -163,6 +163,119 @@ jobs:
           assert client.get('/balance').status_code == 200
           assert client.get('/metrics/agape').status_code == 200
           print('ledger_api.py: all API tests passed')
+          "
+
+      - name: Run claim endpoint tests
+        run: |
+          python -c "
+          import sys, importlib.util
+          from fastapi.testclient import TestClient
+          from eth_account import Account
+          from eth_account.messages import encode_defunct
+
+          spec = importlib.util.spec_from_file_location('ledger_api', 'zaire-axis/ledger_api.py')
+          m = importlib.util.module_from_spec(spec)
+          sys.modules['ledger_api'] = m
+          spec.loader.exec_module(m)
+          client = TestClient(m.app)
+
+          # Seed a surplus harvest event so the claim can be fulfilled
+          r = client.post('/harvests', json={
+            'tray_id': 'tray1', 'crop_type': 'Basil', 'harvest_g': 300.0,
+            'water_ml': 110.0, 'sunlight_lux': 9000.0, 'soil_moisture': 75.0,
+            'agape_value': 95.0
+          })
+          assert r.status_code == 201, r.text
+
+          # Generate a real EIP-191 signature using a throwaway key
+          acct = Account.create()
+          wallet = acct.address
+          tray   = 'tray1'
+          msg    = f'VinelandEternal Claim: {wallet} tray {tray}'
+          sig    = acct.sign_message(encode_defunct(text=msg)).signature.hex()
+
+          r = client.post('/claim', json={
+            'wallet_address': wallet,
+            'signature': '0x' + sig,
+            'tray_id': tray,
+          })
+          assert r.status_code == 200, r.text
+          data = r.json()
+          assert data['status'] == 'fulfilled', f'Expected fulfilled, got: {data}'
+          assert data['token_id'] is not None
+          assert data['surplus_at_claim'] >= 90.0
+
+          # Invalid signature must return 400
+          r_bad = client.post('/claim', json={
+            'wallet_address': wallet,
+            'signature': '0xdeadbeef',
+            'tray_id': tray,
+          })
+          assert r_bad.status_code == 400, f'Expected 400 for bad sig, got {r_bad.status_code}'
+
+          # Mismatched wallet must return 403
+          other = Account.create()
+          sig2  = other.sign_message(encode_defunct(text=msg)).signature.hex()
+          r_mismatch = client.post('/claim', json={
+            'wallet_address': wallet,
+            'signature': '0x' + sig2,
+            'tray_id': tray,
+          })
+          assert r_mismatch.status_code == 403, f'Expected 403 for mismatch, got {r_mismatch.status_code}'
+
+          print('claim endpoint: all tests passed')
+          "
+
+      - name: Run gitnexus mapper tests
+        run: |
+          python -c "
+          import json, sys
+          from pathlib import Path
+          sys.path.insert(0, '.')
+          import gitnexus_mapper as gn
+
+          # build_nexus_graph with real repo, no DB (harvest nodes skipped)
+          G = gn.build_nexus_graph(Path('.'), Path('/nonexistent/zaire-ledger.db'), max_commits=20)
+          assert G.number_of_nodes() > 0, 'Graph must have commit nodes'
+          commit_nodes = [n for n, d in G.nodes(data=True) if d.get('node_type') == 'commit']
+          assert len(commit_nodes) > 0, 'No commit nodes found'
+
+          data = gn.graph_to_dict(G)
+          assert 'generated_at' in data
+          assert data['node_count'] == G.number_of_nodes()
+          assert data['edge_count'] == G.number_of_edges()
+          assert all('id' in n for n in data['nodes'])
+
+          # Serialisable to JSON without error
+          json.dumps(data)
+
+          print(f'gitnexus_mapper.py: graph OK — {data[\"node_count\"]} nodes, {data[\"edge_count\"]} edges')
+          "
+
+      - name: Run chronicle generator tests
+        run: |
+          python -c "
+          from datetime import datetime, timezone
+          import sys
+          sys.path.insert(0, 'docs/chronicles')
+          from generate_chronicle import generate_chronicle
+
+          now   = datetime.now(tz=timezone.utc)
+          trays = [
+            {'tray_id': 'tray1', 'crop': 'Basil',    'water': 85, 'soil': 72, 'sun': 92, 'agape_value': 97},
+            {'tray_id': 'tray2', 'crop': 'Arugula',  'water': 60, 'soil': 55, 'sun': 70, 'agape_value': 62},
+          ]
+          md = generate_chronicle(trays, now)
+          assert '# VinelandEternal Daily Chronicle' in md
+          assert 'tray1' in md
+          assert 'tray2' in md
+          assert '🟢 Surplus' in md
+          assert '🔴 Needs Attention' in md
+
+          empty = generate_chronicle([], now)
+          assert 'NO DATA' in empty
+
+          print('generate_chronicle.py: all tests passed')
           "
 
   # -------------------------------------------------------------------------

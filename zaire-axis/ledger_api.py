@@ -15,6 +15,8 @@ import uuid
 from datetime import datetime, timezone
 from typing import List, Optional
 
+from eth_account import Account
+from eth_account.messages import encode_defunct
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy import (
@@ -77,6 +79,19 @@ class ZaireLedgerEntry(Base):
     credit         = Column(Float, default=0.0)
     memo           = Column(Text, nullable=True)
     recorded_at    = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+
+class HarvestClaim(Base):
+    __tablename__ = "harvest_claims"
+
+    id                = Column(Integer, primary_key=True, index=True)
+    wallet_address    = Column(String(42), nullable=False, index=True)
+    tray_id           = Column(String(50), nullable=False)
+    token_id          = Column(String(100), nullable=True)
+    surplus_at_claim  = Column(Float, default=0.0)
+    # "fulfilled" | "no_surplus"
+    status            = Column(String(20), default="fulfilled")
+    claimed_at        = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
 
 Base.metadata.create_all(bind=engine)
@@ -154,6 +169,48 @@ class AgapeMetric(BaseModel):
     total_water_ml:   float
 
 
+# Callers must sign the following message with their Ethereum private key:
+#   "VinelandEternal Claim: <wallet_address> tray <tray_id>"
+# (hex-encoded EIP-191 personal_sign format)
+_CLAIM_MESSAGE_TEMPLATE = "VinelandEternal Claim: {wallet_address} tray {tray_id}"
+
+# Minimum agape_value score for a tray to be considered "surplus"
+_SURPLUS_THRESHOLD = 90.0
+
+
+class ClaimRequest(BaseModel):
+    wallet_address: str = Field(
+        ...,
+        description="Checksummed Ethereum wallet address of the claimant.",
+        example="0xAbCd000000000000000000000000000000001234",
+    )
+    signature: str = Field(
+        ...,
+        description=(
+            "Hex-encoded EIP-191 personal_sign signature of the message "
+            f"'{_CLAIM_MESSAGE_TEMPLATE}'."
+        ),
+        example="0xabc123...",
+    )
+    tray_id: str = Field(
+        ...,
+        description="Tray ID to claim surplus from.",
+        example="tray1",
+    )
+
+
+class ClaimOut(BaseModel):
+    wallet_address:   str
+    tray_id:          str
+    status:           str
+    token_id:         Optional[str]
+    surplus_at_claim: float
+    claimed_at:       datetime
+
+    class Config:
+        from_attributes = True
+
+
 # Force Pydantic v2 to resolve all forward references now that every model
 # is defined (required when the module is loaded via importlib or with
 # `from __future__ import annotations`).
@@ -162,6 +219,8 @@ HarvestOut.model_rebuild()
 TokenOut.model_rebuild()
 BalanceOut.model_rebuild()
 AgapeMetric.model_rebuild()
+ClaimRequest.model_rebuild()
+ClaimOut.model_rebuild()
 
 
 # ---------------------------------------------------------------------------
@@ -288,3 +347,111 @@ def agape_metrics():
         )
         for r in rows
     ]
+
+
+# --- Claim protocol ---------------------------------------------------------
+
+@app.post("/claim", response_model=ClaimOut, tags=["Claims"])
+def claim_surplus(req: ClaimRequest):
+    """
+    Claim surplus abundance for a tray via wallet-signature verification.
+
+    **Signature format** — the caller must sign the following plaintext message
+    using EIP-191 personal_sign (e.g. MetaMask ``eth_sign`` or
+    ``ethers.Wallet.signMessage``):
+
+        ``VinelandEternal Claim: <wallet_address> tray <tray_id>``
+
+    If the signature is valid and the tray's most recent harvest event has an
+    agape_value ≥ 90 (surplus threshold), a Harvest IS Token is minted and
+    credited to the claiming wallet in the Zaire ∞ ledger.
+
+    Returns ``status: "no_surplus"`` (HTTP 200) when the tray is below the
+    threshold so the AR HUD can update accordingly without raising an error.
+    """
+    # 1. Recover the signer address from the EIP-191 signature
+    message = _CLAIM_MESSAGE_TEMPLATE.format(
+        wallet_address=req.wallet_address, tray_id=req.tray_id
+    )
+    try:
+        signable  = encode_defunct(text=message)
+        recovered = Account.recover_message(signable, signature=req.signature)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"Malformed signature: {exc}")
+
+    if recovered.lower() != req.wallet_address.lower():
+        raise HTTPException(
+            status_code=403,
+            detail="Signature does not match wallet_address.",
+        )
+
+    # 2. Look up the most recent harvest event for the requested tray
+    db = next(get_db())
+    latest_harvest = (
+        db.query(HarvestEvent)
+        .filter(HarvestEvent.tray_id == req.tray_id)
+        .order_by(HarvestEvent.harvested_at.desc())
+        .first()
+    )
+    surplus_value = latest_harvest.agape_value if latest_harvest else 0.0
+
+    # 3a. No surplus — record the attempt and return gracefully
+    if surplus_value < _SURPLUS_THRESHOLD:
+        claim = HarvestClaim(
+            wallet_address=req.wallet_address,
+            tray_id=req.tray_id,
+            surplus_at_claim=surplus_value,
+            status="no_surplus",
+        )
+        db.add(claim)
+        db.commit()
+        db.refresh(claim)
+        return ClaimOut(
+            wallet_address=claim.wallet_address,
+            tray_id=claim.tray_id,
+            status="no_surplus",
+            token_id=None,
+            surplus_at_claim=claim.surplus_at_claim,
+            claimed_at=claim.claimed_at,
+        )
+
+    # 3b. Surplus available — mint a Harvest IS Token for the claiming wallet
+    token_id  = str(uuid.uuid4())
+    token_uri = f"ipfs://Qm{token_id.replace('-', '')[:44]}"
+    zaire_credit = round(surplus_value / 100.0, 8)
+
+    token = PolToken(
+        token_id=token_id,
+        harvest_event_id=latest_harvest.id,
+        token_uri=token_uri,
+        zaire_balance=zaire_credit,
+    )
+    db.add(token)
+
+    ledger_entry = ZaireLedgerEntry(
+        beneficiary_id=req.wallet_address,
+        token_id=token_id,
+        credit=zaire_credit,
+        memo=f"Abundance claim — {req.tray_id} agape {surplus_value}",
+    )
+    db.add(ledger_entry)
+
+    claim = HarvestClaim(
+        wallet_address=req.wallet_address,
+        tray_id=req.tray_id,
+        token_id=token_id,
+        surplus_at_claim=surplus_value,
+        status="fulfilled",
+    )
+    db.add(claim)
+    db.commit()
+    db.refresh(claim)
+
+    return ClaimOut(
+        wallet_address=claim.wallet_address,
+        tray_id=claim.tray_id,
+        status="fulfilled",
+        token_id=claim.token_id,
+        surplus_at_claim=claim.surplus_at_claim,
+        claimed_at=claim.claimed_at,
+    )

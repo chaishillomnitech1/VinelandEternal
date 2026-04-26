@@ -17,6 +17,7 @@
 // ---------------------------------------------------------------------------
 
 const DASHBOARD_URL = window.DASHBOARD_URL || "http://localhost:5000";
+const LEDGER_URL    = window.LEDGER_URL    || "http://localhost:8000";
 const REFRESH_INTERVAL_MS = 15_000; // re-fetch every 15 s
 
 // ---------------------------------------------------------------------------
@@ -247,6 +248,27 @@ function updateHUD(trays) {
   document.getElementById("badge-trays").textContent   = `Trays: ${trays.length}`;
   document.getElementById("badge-surplus").textContent = `Surplus Trays: ${surplusCount}`;
   document.getElementById("badge-agape").textContent   = `Avg Agape: ${avgAgape}`;
+
+  // Illuminate the Claim Wealth button only when surplus is available
+  const claimBtn = document.getElementById("claim-btn");
+  if (claimBtn) {
+    if (surplusCount > 0) {
+      claimBtn.disabled = false;
+      claimBtn.classList.add("surplus");
+    } else {
+      claimBtn.disabled = true;
+      claimBtn.classList.remove("surplus");
+    }
+  }
+
+  // Keep the tray selector in the claim modal in sync
+  const claimTray = document.getElementById("claim-tray");
+  if (claimTray) {
+    const surplusTrays = trays.filter((t) => (t.agape_value || 0) >= 90);
+    claimTray.innerHTML = surplusTrays
+      .map((t) => `<option value="${t.tray_id}">${t.tray_id} — ${t.crop || "?"} (Agape: ${t.agape_value})</option>`)
+      .join("");
+  }
 }
 
 function updateTrayPanel(trays) {
@@ -272,3 +294,77 @@ document.addEventListener("DOMContentLoaded", () => {
   refreshTrayData();
   setInterval(refreshTrayData, REFRESH_INTERVAL_MS);
 });
+
+// ---------------------------------------------------------------------------
+// Claim modal
+// ---------------------------------------------------------------------------
+
+function openClaimModal() {
+  document.getElementById("claim-result").textContent = "";
+  _updateClaimHint();
+  document.getElementById("claim-modal").classList.add("open");
+}
+
+function closeClaimModal() {
+  document.getElementById("claim-modal").classList.remove("open");
+}
+
+/** Regenerate the "sign this message" hint whenever wallet/tray inputs change. */
+function _updateClaimHint() {
+  const wallet = (document.getElementById("claim-wallet").value || "").trim();
+  const tray   = document.getElementById("claim-tray").value || "";
+  const hint   = document.getElementById("claim-msg-hint");
+  if (hint) {
+    hint.textContent = wallet && tray
+      ? `Sign this exact message with your wallet:\n"VinelandEternal Claim: ${wallet} tray ${tray}"`
+      : "Enter your wallet address and select a tray to see the message to sign.";
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const walletInput = document.getElementById("claim-wallet");
+  const traySelect  = document.getElementById("claim-tray");
+  if (walletInput) walletInput.addEventListener("input", _updateClaimHint);
+  if (traySelect)  traySelect.addEventListener("change", _updateClaimHint);
+});
+
+async function submitClaim() {
+  const wallet = (document.getElementById("claim-wallet").value || "").trim();
+  const trayId = document.getElementById("claim-tray").value;
+  const sig    = (document.getElementById("claim-sig").value || "").trim();
+  const result = document.getElementById("claim-result");
+
+  if (!wallet || !trayId || !sig) {
+    result.style.color = "#ef5350";
+    result.textContent = "⚠ Please fill in all fields.";
+    return;
+  }
+
+  result.style.color = "#aaa";
+  result.textContent = "⏳ Submitting claim…";
+
+  try {
+    const resp = await fetch(`${LEDGER_URL}/claim`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ wallet_address: wallet, tray_id: trayId, signature: sig }),
+    });
+    const data = await resp.json();
+
+    if (resp.ok) {
+      if (data.status === "fulfilled") {
+        result.style.color = "#69f0ae";
+        result.textContent = `✅ Claim fulfilled! Token: ${data.token_id}`;
+      } else {
+        result.style.color = "#ffb74d";
+        result.textContent = "🟡 No surplus available for that tray right now.";
+      }
+    } else {
+      result.style.color = "#ef5350";
+      result.textContent = `❌ ${data.detail || "Claim failed."}`;
+    }
+  } catch (err) {
+    result.style.color = "#ef5350";
+    result.textContent = `❌ Network error: ${err.message}`;
+  }
+}
