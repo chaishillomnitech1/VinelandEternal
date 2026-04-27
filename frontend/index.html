@@ -370,9 +370,9 @@
   <div class="panel" id="panel-stake">
 
     <div class="card">
-      <h2>⚡ Stake a Consciousness Mirror NFT</h2>
+      <h2>⚡ Stake Consciousness Mirror NFTs</h2>
       <p style="font-size:.85rem;color:var(--muted);margin-bottom:1rem;">
-        Select one of your un-staked tokens below, then click <strong>Stake</strong>.
+        Select one or more un-staked tokens below, then click <strong>Stake Selected</strong>.
         The Master NFT (#20) earns 3× the base reward rate.
         2.5% of every reward claim flows to the Zakat pool automatically.
       </p>
@@ -383,7 +383,11 @@
         <button class="btn btn-primary" id="stake-btn" onclick="stakeSelected()" disabled>
           Stake Selected
         </button>
-        <span id="stake-selected-label" style="font-size:.82rem;color:var(--muted);">No token selected</span>
+        <button class="btn btn-outline" id="stake-all-btn" onclick="selectAllTokens()" disabled
+                style="padding:.55rem 1rem;">
+          Select All
+        </button>
+        <span id="stake-selected-label" style="font-size:.82rem;color:var(--muted);">No tokens selected</span>
       </div>
       <div class="status" id="stake-status"></div>
     </div>
@@ -399,7 +403,22 @@
       <h2>💎 Your Staked Positions</h2>
       <p style="font-size:.85rem;color:var(--muted);margin-bottom:1rem;">
         Claim pending $MIRROR without unstaking, or unstake to reclaim your NFT and rewards at once.
+        Use <strong>Claim All</strong> / <strong>Unstake All</strong> to batch multiple tokens in one transaction.
       </p>
+      <div id="batch-claim-bar" style="display:none;gap:.75rem;margin-bottom:1rem;flex-wrap:wrap;">
+        <div class="stat" style="flex:1;min-width:180px;">
+          <div class="stat-label">Total Pending Rewards</div>
+          <div class="stat-value" id="total-pending-display">— MIRROR</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;">
+          <button class="btn btn-green" id="claim-all-btn" onclick="claimAllRewards(this)">
+            ⚡ Claim All
+          </button>
+          <button class="btn btn-danger" id="unstake-all-btn" onclick="unstakeAll(this)">
+            🔓 Unstake All
+          </button>
+        </div>
+      </div>
       <div id="stake-positions">
         <p style="color:var(--muted);font-size:.85rem;">Connect wallet to view staked positions.</p>
       </div>
@@ -504,7 +523,11 @@ const STAKING_ABI = [
   "function stake(uint256 tokenId)",
   "function unstake(uint256 tokenId)",
   "function claimRewards(uint256 tokenId)",
+  "function batchStake(uint256[] tokenIds)",
+  "function batchUnstake(uint256[] tokenIds)",
+  "function batchClaimRewards(uint256[] tokenIds)",
   "function pendingRewards(uint256 tokenId) view returns (uint256)",
+  "function totalPendingRewards(address staker) view returns (uint256)",
   "function stakedTokensOf(address staker) view returns (uint256[])",
   "function stakes(uint256) view returns (address staker, uint256 stakedAt, uint256 rewardDebt)",
   "function rewardRate() view returns (uint256)",
@@ -514,7 +537,7 @@ const STAKING_ABI = [
 
 let provider, signer, userAddress;
 let mirrorContract, nftContract, stakingContract;
-let selectedStakeToken = null;
+let selectedStakeTokens = new Set(); // multi-select support
 
 // ── Utilities ────────────────────────────────────────────────────────────
 
@@ -735,12 +758,15 @@ async function getStakedTokenIds() {
 
 // ── Stake panel ───────────────────────────────────────────────────────────
 
+let _unstakeableTokenIds = []; // tracks which tokens are available to batch-unstake
+
 async function loadUserTokens() {
   const grid = document.getElementById("stake-token-grid");
   grid.innerHTML = '<span style="color:var(--muted);font-size:.82rem">Loading…</span>';
-  selectedStakeToken = null;
+  selectedStakeTokens.clear();
   document.getElementById("stake-btn").disabled = true;
-  document.getElementById("stake-selected-label").textContent = "No token selected";
+  document.getElementById("stake-all-btn").disabled = true;
+  document.getElementById("stake-selected-label").textContent = "No tokens selected";
 
   try {
     const [owned, staked] = await Promise.all([getUserTokenIds(), getStakedTokenIds()]);
@@ -752,6 +778,11 @@ async function loadUserTokens() {
 
     grid.innerHTML = "";
     const all = [...new Set([...owned, ...staked])].sort((a, b) => a - b);
+    const unstakeableCount = owned.length; // tokens in wallet (not staked) can be staked
+
+    if (unstakeableCount > 0) {
+      document.getElementById("stake-all-btn").disabled = false;
+    }
 
     for (const id of all) {
       const cat = tokenCategory(id);
@@ -766,7 +797,7 @@ async function loadUserTokens() {
         ${isStaked ? '<div style="font-size:.65rem;color:#8080c0;margin-top:.2rem">Staked</div>' : ""}
       `;
       if (!isStaked) {
-        div.addEventListener("click", () => selectStakeToken(id, div));
+        div.addEventListener("click", () => toggleStakeToken(id, div));
       }
       grid.appendChild(div);
     }
@@ -775,17 +806,42 @@ async function loadUserTokens() {
   }
 }
 
-function selectStakeToken(id, el) {
-  document.querySelectorAll(".token-card.selected").forEach(c => c.classList.remove("selected"));
-  el.classList.add("selected");
-  selectedStakeToken = id;
-  document.getElementById("stake-btn").disabled = false;
-  document.getElementById("stake-selected-label").textContent = `Selected: #${id} (${tokenCategory(id)})`;
+function toggleStakeToken(id, el) {
+  if (selectedStakeTokens.has(id)) {
+    selectedStakeTokens.delete(id);
+    el.classList.remove("selected");
+  } else {
+    selectedStakeTokens.add(id);
+    el.classList.add("selected");
+  }
+  const count = selectedStakeTokens.size;
+  document.getElementById("stake-btn").disabled = count === 0;
+  document.getElementById("stake-selected-label").textContent =
+    count === 0
+      ? "No tokens selected"
+      : count === 1
+      ? `Selected: #${[...selectedStakeTokens][0]} (${tokenCategory([...selectedStakeTokens][0])})`
+      : `${count} tokens selected`;
+}
+
+function selectAllTokens() {
+  // Select all un-staked (not .staked) token cards in the grid
+  document.querySelectorAll(".token-card:not(.staked)").forEach(div => {
+    const id = parseInt(div.dataset.tokenId);
+    if (!selectedStakeTokens.has(id)) {
+      selectedStakeTokens.add(id);
+      div.classList.add("selected");
+    }
+  });
+  const count = selectedStakeTokens.size;
+  document.getElementById("stake-btn").disabled = count === 0;
+  document.getElementById("stake-selected-label").textContent =
+    count === 0 ? "No tokens selected" : `${count} tokens selected`;
 }
 
 async function stakeSelected() {
-  if (!selectedStakeToken) return;
-  const tokenId = selectedStakeToken;
+  if (selectedStakeTokens.size === 0) return;
+  const tokenIds = [...selectedStakeTokens].sort((a, b) => a - b);
   const btn = document.getElementById("stake-btn");
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span> Staking…';
@@ -800,17 +856,23 @@ async function stakeSelected() {
       await approveTx.wait();
     }
 
-    setStatus("stake-status",
-      `<span class="spinner"></span> Staking token #${tokenId}…`, "info");
-    const tx = await stakingContract.stake(tokenId);
+    const label = tokenIds.length === 1 ? `token #${tokenIds[0]}` : `${tokenIds.length} tokens`;
+    setStatus("stake-status", `<span class="spinner"></span> Staking ${label}…`, "info");
+
+    let tx;
+    if (tokenIds.length === 1) {
+      tx = await stakingContract.stake(tokenIds[0]);
+    } else {
+      tx = await stakingContract.batchStake(tokenIds);
+    }
     await tx.wait();
 
     setStatus("stake-status",
-      `✅ Token #${tokenId} is now staked! Earning $MIRROR. 
+      `✅ ${label.charAt(0).toUpperCase() + label.slice(1)} now earning $MIRROR!
        <a href="https://mumbai.polygonscan.com/tx/${tx.hash}" target="_blank"
           style="color:var(--gold)">View TX</a>`, "ok");
 
-    selectedStakeToken = null;
+    selectedStakeTokens.clear();
     await loadUserTokens();
     await refreshWalletBar();
 
@@ -818,7 +880,7 @@ async function stakeSelected() {
     setStatus("stake-status", `❌ ${err.reason || err.message}`, "err");
   } finally {
     btn.innerHTML = "Stake Selected";
-    btn.disabled = false;
+    btn.disabled = selectedStakeTokens.size === 0;
   }
 }
 
@@ -826,7 +888,9 @@ async function stakeSelected() {
 
 async function loadStakedPositions() {
   const container = document.getElementById("stake-positions");
+  const batchBar  = document.getElementById("batch-claim-bar");
   container.innerHTML = '<p style="color:var(--muted);font-size:.85rem">Loading positions…</p>';
+  batchBar.style.display = "none";
   clearStatus("claim-status");
 
   try {
@@ -837,14 +901,24 @@ async function loadStakedPositions() {
       return;
     }
 
-    // Fetch pending rewards for all staked tokens
-    const pendingArr = await Promise.all(
-      stakedIds.map(id =>
-        stakingContract.pendingRewards(id)
-          .then(v => ({ id, pending: v }))
-          .catch(() => ({ id, pending: 0n }))
-      )
-    );
+    // Fetch total pending and per-token pending in parallel
+    const [totalPending, pendingArr] = await Promise.all([
+      stakingContract.totalPendingRewards(userAddress).catch(() => 0n),
+      Promise.all(
+        stakedIds.map(id =>
+          stakingContract.pendingRewards(id)
+            .then(v => ({ id, pending: v }))
+            .catch(() => ({ id, pending: 0n }))
+        )
+      ),
+    ]);
+
+    // Show batch action bar
+    document.getElementById("total-pending-display").textContent =
+      parseFloat(ethers.formatEther(totalPending)).toFixed(4) + " MIRROR";
+    batchBar.style.display = "flex";
+    // Store current staked IDs for batch buttons
+    batchBar.dataset.stakedIds = JSON.stringify(stakedIds);
 
     container.innerHTML = "";
     for (const { id, pending } of pendingArr) {
@@ -869,6 +943,63 @@ async function loadStakedPositions() {
 
   } catch (err) {
     container.innerHTML = `<p style="color:var(--red);font-size:.82rem">${err.message}</p>`;
+  }
+}
+
+async function claimAllRewards(btn) {
+  const stakedIds = JSON.parse(document.getElementById("batch-claim-bar").dataset.stakedIds || "[]");
+  if (stakedIds.length === 0) return;
+  btn.disabled = true;
+  document.getElementById("unstake-all-btn").disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>';
+  clearStatus("claim-status");
+  try {
+    const tx = stakedIds.length === 1
+      ? await stakingContract.claimRewards(stakedIds[0])
+      : await stakingContract.batchClaimRewards(stakedIds);
+    setStatus("claim-status",
+      `<span class="spinner"></span> Claiming rewards for ${stakedIds.length} token(s)…`, "info");
+    await tx.wait();
+    setStatus("claim-status",
+      `✅ $MIRROR claimed for ${stakedIds.length} token(s)! 
+       <a href="https://mumbai.polygonscan.com/tx/${tx.hash}" target="_blank"
+          style="color:var(--gold)">${tx.hash.slice(0,14)}…</a>`, "ok");
+    await refreshWalletBar();
+    await loadStakedPositions();
+  } catch (err) {
+    setStatus("claim-status", `❌ ${err.reason || err.message}`, "err");
+    btn.disabled = false;
+    document.getElementById("unstake-all-btn").disabled = false;
+    btn.innerHTML = "⚡ Claim All";
+  }
+}
+
+async function unstakeAll(btn) {
+  const stakedIds = JSON.parse(document.getElementById("batch-claim-bar").dataset.stakedIds || "[]");
+  if (stakedIds.length === 0) return;
+  btn.disabled = true;
+  document.getElementById("claim-all-btn").disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>';
+  clearStatus("claim-status");
+  try {
+    const tx = stakedIds.length === 1
+      ? await stakingContract.unstake(stakedIds[0])
+      : await stakingContract.batchUnstake(stakedIds);
+    setStatus("claim-status",
+      `<span class="spinner"></span> Unstaking ${stakedIds.length} token(s)…`, "info");
+    await tx.wait();
+    setStatus("claim-status",
+      `✅ ${stakedIds.length} token(s) unstaked with rewards claimed!
+       <a href="https://mumbai.polygonscan.com/tx/${tx.hash}" target="_blank"
+          style="color:var(--gold)">${tx.hash.slice(0,14)}…</a>`, "ok");
+    await refreshWalletBar();
+    await loadStakedPositions();
+    await loadUserTokens();
+  } catch (err) {
+    setStatus("claim-status", `❌ ${err.reason || err.message}`, "err");
+    btn.disabled = false;
+    document.getElementById("claim-all-btn").disabled = false;
+    btn.innerHTML = "🔓 Unstake All";
   }
 }
 

@@ -97,6 +97,9 @@ contract MirrorStaking {
     event Staked(address indexed staker, uint256 indexed tokenId);
     event Unstaked(address indexed staker, uint256 indexed tokenId, uint256 reward);
     event RewardsClaimed(address indexed staker, uint256 indexed tokenId, uint256 netReward, uint256 zakat);
+    event BatchStaked(address indexed staker, uint256 count);
+    event BatchUnstaked(address indexed staker, uint256 count);
+    event BatchRewardsClaimed(address indexed staker, uint256 count);
     event RewardRateUpdated(uint256 previousRate, uint256 newRate);
     event ZakatPoolUpdated(address indexed previousPool, address indexed newPool);
     event RewardsDeposited(uint256 amount);
@@ -227,6 +230,108 @@ contract MirrorStaking {
      */
     function stakedTokensOf(address staker) external view returns (uint256[] memory) {
         return _stakerTokens[staker];
+    }
+
+    /**
+     * @notice Returns the sum of pending $MIRROR rewards (gross, before zakat)
+     *         across all tokens currently staked by `staker`.
+     */
+    function totalPendingRewards(address staker) external view returns (uint256 total) {
+        uint256[] storage tokens = _stakerTokens[staker];
+        uint256 len = tokens.length;
+        for (uint256 i = 0; i < len; i++) {
+            total += _pendingRewards(tokens[i]);
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Batch operations
+    // -----------------------------------------------------------------------
+
+    /**
+     * @notice Stake multiple NFTs in a single transaction.
+     *         Caller must have approved this contract to transfer each tokenId
+     *         on the NFT contract before calling.
+     * @param tokenIds  Array of token IDs to stake (1–20, no duplicates).
+     */
+    function batchStake(uint256[] calldata tokenIds) external {
+        uint256 len = tokenIds.length;
+        require(len > 0, "MirrorStaking: empty array");
+        for (uint256 i = 0; i < len; i++) {
+            uint256 tokenId = tokenIds[i];
+            require(
+                nftContract.ownerOf(tokenId) == msg.sender,
+                "MirrorStaking: not token owner"
+            );
+            require(stakes[tokenId].staker == address(0), "MirrorStaking: already staked");
+
+            nftContract.transferFrom(msg.sender, address(this), tokenId);
+
+            stakes[tokenId] = StakeInfo({
+                staker:     msg.sender,
+                stakedAt:   block.timestamp,
+                rewardDebt: 0
+            });
+
+            _stakerTokens[msg.sender].push(tokenId);
+
+            emit Staked(msg.sender, tokenId);
+        }
+        emit BatchStaked(msg.sender, len);
+    }
+
+    /**
+     * @notice Claim pending $MIRROR rewards for multiple staked tokens in one
+     *         transaction.  Tokens with zero pending rewards are silently skipped.
+     * @param tokenIds  Array of token IDs whose rewards to claim.
+     */
+    function batchClaimRewards(uint256[] calldata tokenIds) external {
+        uint256 len = tokenIds.length;
+        require(len > 0, "MirrorStaking: empty array");
+        for (uint256 i = 0; i < len; i++) {
+            uint256 tokenId = tokenIds[i];
+            StakeInfo storage info = stakes[tokenId];
+            require(info.staker == msg.sender, "MirrorStaking: not staker");
+
+            uint256 pending = _pendingRewards(tokenId);
+            if (pending == 0) continue;
+
+            info.rewardDebt += pending;
+            _disperseReward(msg.sender, tokenId, pending);
+        }
+        emit BatchRewardsClaimed(msg.sender, len);
+    }
+
+    /**
+     * @notice Unstake multiple NFTs in a single transaction, automatically
+     *         claiming all pending rewards for each token.
+     * @param tokenIds  Array of token IDs to unstake.
+     */
+    function batchUnstake(uint256[] calldata tokenIds) external {
+        uint256 len = tokenIds.length;
+        require(len > 0, "MirrorStaking: empty array");
+        for (uint256 i = 0; i < len; i++) {
+            uint256 tokenId = tokenIds[i];
+            StakeInfo storage info = stakes[tokenId];
+            require(info.staker == msg.sender, "MirrorStaking: not staker");
+
+            uint256 pending = _pendingRewards(tokenId);
+
+            // Clear stake before external calls (re-entrancy guard pattern)
+            delete stakes[tokenId];
+            _removeFromStakerList(msg.sender, tokenId);
+
+            // Return NFT
+            nftContract.transferFrom(address(this), msg.sender, tokenId);
+
+            // Pay out reward
+            if (pending > 0) {
+                _disperseReward(msg.sender, tokenId, pending);
+            }
+
+            emit Unstaked(msg.sender, tokenId, pending);
+        }
+        emit BatchUnstaked(msg.sender, len);
     }
 
     // -----------------------------------------------------------------------
