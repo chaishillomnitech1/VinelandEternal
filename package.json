@@ -20,7 +20,13 @@
     "verify:polygon": "hardhat verify --network polygon",
     "deploy-mars-dao:mumbai": "hardhat run scripts/deploy-mars-dao.js --network mumbai",
     "deploy-mars-dao:polygon": "hardhat run scripts/deploy-mars-dao.js --network polygon",
-    "deploy-mars-dao:local": "hardhat run scripts/deploy-mars-dao.js --network localhost"
+    "deploy-mars-dao:local": "hardhat run scripts/deploy-mars-dao.js --network localhost",
+    "blast": "node scripts/global-blast.js",
+    "blast:dry": "node scripts/global-blast.js --dry-run",
+    "cex-listing": "node scripts/cex-listing.js --exchanges all",
+    "cex-listing:dry": "node scripts/cex-listing.js --exchanges all --dry-run",
+    "trading-bot": "python3 scripts/qfs-trading-bot.py",
+    "trading-bot:dry": "python3 scripts/qfs-trading-bot.py --dry-run"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",

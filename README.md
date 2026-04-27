@@ -211,11 +211,63 @@ cat docs/mars-dao/slides-content.md
 
 ### Governance Presentation
 
-A complete 22-slide HTML presentation is included at `frontend/mars-dao/index.html`:
+A complete 22-slide HTML presentation is included at `presentations/mars-dao/index.html`:
 - Self-contained, no server required — open directly in any browser
 - Keyboard navigation (←/→/Space) and touch swipe support
 - Mars-themed design: #B71C1C titles · #ECEFF1 background · monospace body
 - Covers: crisis → architecture → token economy → treasury → proposal lifecycle → 4 types → guilds → security → roadmap → vision → call to action
+
+---
+
+## Growth & Operations Scripts 📡
+
+### Global Blast — Multi-Channel Announcement
+```bash
+# Dry run (preview messages, send nothing)
+npm run blast:dry
+
+# Live broadcast to Twitter, Telegram, Discord, Reddit
+npm run blast
+
+# Prerequisites (one-time install):
+npm install twitter-api-v2 node-telegram-bot-api snoowrap
+# Then fill in TWITTER_*, TELEGRAM_*, DISCORD_*, REDDIT_* in .env
+```
+
+### CEX Listing Submissions
+```bash
+# Preview application emails (no submissions made)
+npm run cex-listing:dry
+
+# Submit to all supported exchanges (Binance, Coinbase, KuCoin, Kraken, Gate, MEXC, Huobi)
+npm run cex-listing
+
+# Submit to specific exchanges
+node scripts/cex-listing.js --exchanges binance,coinbase,kucoin
+
+# Application drafts are saved to outbox/ for manual review / sending
+# Requires COINBASE_ASSET_API_KEY for Coinbase API submission;
+# all other exchanges fall back to email draft generation.
+# Add SENDGRID_API_KEY to auto-send emails.
+```
+
+### QFS Trading Bot — Polygon Arbitrage
+```bash
+# Dry run (watch signals, no transactions)
+npm run trading-bot:dry
+
+# Live execution (requires BOT_PRIVATE_KEY + funded wallet)
+npm run trading-bot
+
+# Prerequisites:
+pip install web3 python-dotenv
+# Set POLYGON_RPC_URL, BOT_PRIVATE_KEY, UNISWAP_V3_POOL_ADDRESS in .env
+```
+
+All trade executions are appended to `trades_log.jsonl` for full audit trail.
+
+### Financial Perfection Dashboard
+Open `frontend/financial-perfection.html` directly in any browser for a live simulation of empire metrics: $MIRROR price, TVL, DAO treasury, QFS bot PnL, revenue streams, hub map, and active proposals. Connect a Web3 provider for real on-chain data.
 
 ---
 

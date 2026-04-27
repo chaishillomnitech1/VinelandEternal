@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VinelandEternal — Financial Perfection Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;600;700&family=Roboto:wght@400;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    /* ── Reset ─────────────────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold:    #ffd700;
+      --glow:    #ffb300;
+      --dark:    #070710;
+      --card:    #0e0e1c;
+      --card2:   #12122a;
+      --border:  #1e1e40;
+      --green:   #00e676;
+      --red:     #ff1744;
+      --amber:   #ffab40;
+      --blue:    #40c4ff;
+      --purple:  #ce93d8;
+      --text:    #e8e8ff;
+      --muted:   #6b6b9a;
+    }
+
+    html, body {
+      background: var(--dark);
+      color: var(--text);
+      font-family: 'Roboto', sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── Layout ─────────────────────────────────────────────────────────────── */
+    .page { max-width: 1400px; margin: 0 auto; padding: 24px 20px 48px; }
+
+    /* ── Top bar ─────────────────────────────────────────────────────────────── */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 16px; margin-bottom: 28px;
+      flex-wrap: wrap; gap: 12px;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 14px; }
+    .logo-icon { font-size: 2rem; color: var(--gold); filter: drop-shadow(0 0 8px var(--glow)); }
+    .logo-text { font-family: 'Roboto', sans-serif; font-weight: 900; font-size: 1.3rem; }
+    .logo-text span { color: var(--gold); }
+    .topbar-right { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .live-badge {
+      display: flex; align-items: center; gap: 6px;
+      background: rgba(0,230,118,.12); border: 1px solid var(--green);
+      color: var(--green); padding: 4px 12px; border-radius: 20px;
+      font-family: 'Roboto Mono', monospace; font-size: .75rem; font-weight: 600;
+    }
+    .live-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 6px var(--green);
+      animation: pulse 1.4s infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.3} }
+    .clock {
+      font-family: 'Roboto Mono', monospace; font-size: .8rem;
+      color: var(--muted);
+    }
+
+    /* ── Section header ─────────────────────────────────────────────────────── */
+    .section-label {
+      font-family: 'Roboto Mono', monospace; font-size: .7rem; font-weight: 700;
+      color: var(--muted); text-transform: uppercase; letter-spacing: .12em;
+      margin-bottom: 12px;
+    }
+
+    /* ── Primary KPI row ─────────────────────────────────────────────────────── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px; margin-bottom: 28px;
+    }
+    .kpi-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 20px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color .25s;
+    }
+    .kpi-card:hover { border-color: var(--gold); }
+    .kpi-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    }
+    .kpi-card.gold::before  { background: var(--gold); }
+    .kpi-card.green::before { background: var(--green); }
+    .kpi-card.blue::before  { background: var(--blue); }
+    .kpi-card.purple::before { background: var(--purple); }
+    .kpi-card.amber::before { background: var(--amber); }
+    .kpi-card.red::before   { background: var(--red); }
+
+    .kpi-icon { font-size: 1.3rem; margin-bottom: 8px; }
+    .kpi-card.gold   .kpi-icon { color: var(--gold); }
+    .kpi-card.green  .kpi-icon { color: var(--green); }
+    .kpi-card.blue   .kpi-icon { color: var(--blue); }
+    .kpi-card.purple .kpi-icon { color: var(--purple); }
+    .kpi-card.amber  .kpi-icon { color: var(--amber); }
+    .kpi-card.red    .kpi-icon { color: var(--red); }
+
+    .kpi-value {
+      font-family: 'Roboto Mono', monospace; font-weight: 700; font-size: 1.8rem;
+      color: var(--text); line-height: 1;
+    }
+    .kpi-label { font-size: .75rem; color: var(--muted); margin-top: 6px; text-transform: uppercase; letter-spacing: .08em; }
+    .kpi-delta {
+      font-family: 'Roboto Mono', monospace; font-size: .75rem; font-weight: 600;
+      margin-top: 6px;
+    }
+    .kpi-delta.up   { color: var(--green); }
+    .kpi-delta.down { color: var(--red); }
+
+    /* ── Middle split ────────────────────────────────────────────────────────── */
+    .mid-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px; margin-bottom: 28px;
+    }
+    @media (max-width: 900px) { .mid-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 600px) { .mid-grid { grid-template-columns: 1fr; } }
+
+    /* ── Panel ───────────────────────────────────────────────────────────────── */
+    .panel {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 20px;
+    }
+    .panel-title {
+      font-family: 'Roboto', sans-serif; font-weight: 700; font-size: .9rem;
+      color: var(--text); margin-bottom: 14px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .panel-title i { font-size: 1rem; }
+
+    /* ── Revenue table ───────────────────────────────────────────────────────── */
+    .rev-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 7px 0; border-bottom: 1px solid var(--border);
+      font-size: .82rem;
+    }
+    .rev-row:last-child { border-bottom: none; }
+    .rev-label { color: var(--muted); }
+    .rev-val   { font-family: 'Roboto Mono', monospace; color: var(--green); font-weight: 600; }
+
+    /* ── Activity feed ───────────────────────────────────────────────────────── */
+    .feed-item {
+      display: flex; gap: 10px; align-items: flex-start;
+      padding: 8px 0; border-bottom: 1px solid var(--border); font-size: .8rem;
+    }
+    .feed-item:last-child { border-bottom: none; }
+    .feed-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      flex-shrink: 0; margin-top: 4px;
+    }
+    .feed-dot.buy    { background: var(--green); }
+    .feed-dot.sell   { background: var(--red); }
+    .feed-dot.stake  { background: var(--gold); }
+    .feed-dot.vote   { background: var(--blue); }
+    .feed-dot.mint   { background: var(--purple); }
+    .feed-dot.reward { background: var(--amber); }
+    .feed-text  { color: var(--text); line-height: 1.4; }
+    .feed-ts    { font-family: 'Roboto Mono', monospace; font-size: .7rem; color: var(--muted); white-space: nowrap; }
+
+    /* ── Progress bars ───────────────────────────────────────────────────────── */
+    .prog-row { margin-bottom: 12px; }
+    .prog-header {
+      display: flex; justify-content: space-between;
+      font-size: .78rem; margin-bottom: 5px;
+    }
+    .prog-header .prog-label { color: var(--muted); }
+    .prog-header .prog-val   { font-family: 'Roboto Mono', monospace; color: var(--text); }
+    .prog-track {
+      height: 7px; background: rgba(255,255,255,.07);
+      border-radius: 4px; overflow: hidden;
+    }
+    .prog-fill {
+      height: 7px; border-radius: 4px;
+      transition: width 1s ease-out;
+    }
+    .prog-fill.gold   { background: linear-gradient(90deg, var(--glow), var(--gold)); }
+    .prog-fill.green  { background: linear-gradient(90deg, #00c853, var(--green)); }
+    .prog-fill.blue   { background: linear-gradient(90deg, #0091ea, var(--blue)); }
+    .prog-fill.purple { background: linear-gradient(90deg, #7b1fa2, var(--purple)); }
+    .prog-fill.amber  { background: linear-gradient(90deg, #e65100, var(--amber)); }
+
+    /* ── Token price chart placeholder ─────────────────────────────────────── */
+    .price-chart {
+      width: 100%; height: 120px;
+      position: relative; overflow: hidden;
+    }
+    .price-chart canvas { width: 100% !important; height: 100% !important; }
+
+    /* ── Bot console ─────────────────────────────────────────────────────────── */
+    .bot-console {
+      background: #060612; border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px;
+      font-family: 'Roboto Mono', monospace; font-size: .72rem;
+      height: 160px; overflow-y: auto; line-height: 1.6;
+      color: var(--green);
+    }
+    .bot-console .ts { color: var(--muted); }
+    .bot-console .buy   { color: var(--green); }
+    .bot-console .sell  { color: var(--red); }
+    .bot-console .hold  { color: var(--muted); }
+    .bot-console .err   { color: var(--red); }
+
+    /* ── Bottom row ──────────────────────────────────────────────────────────── */
+    .bottom-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 16px; margin-bottom: 28px;
+    }
+    @media (max-width: 700px) { .bottom-grid { grid-template-columns: 1fr; } }
+
+    /* ── Hub map placeholder ─────────────────────────────────────────────────── */
+    .hub-map {
+      background: #060612; border-radius: 8px;
+      position: relative; height: 200px; overflow: hidden;
+    }
+    .hub-map canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .hub-count {
+      position: absolute; bottom: 10px; right: 14px;
+      font-family: 'Roboto Mono', monospace; font-size: .75rem; color: var(--gold);
+    }
+
+    /* ── DAO proposals ───────────────────────────────────────────────────────── */
+    .prop-item {
+      padding: 10px 0; border-bottom: 1px solid var(--border); font-size: .82rem;
+    }
+    .prop-item:last-child { border-bottom: none; }
+    .prop-title { color: var(--text); margin-bottom: 5px; font-weight: 600; }
+    .prop-meta  { display: flex; gap: 10px; align-items: center; }
+    .prop-tag {
+      font-family: 'Roboto Mono', monospace; font-size: .65rem; font-weight: 700;
+      padding: 2px 8px; border-radius: 10px; text-transform: uppercase;
+    }
+    .prop-tag.active  { background: rgba(0,230,118,.15); color: var(--green); border: 1px solid var(--green); }
+    .prop-tag.passed  { background: rgba(64,196,255,.15); color: var(--blue);  border: 1px solid var(--blue); }
+    .prop-tag.pending { background: rgba(255,171,64,.15); color: var(--amber); border: 1px solid var(--amber); }
+    .prop-vote-bar { flex: 1; height: 5px; background: rgba(255,255,255,.07); border-radius: 3px; }
+    .prop-vote-fill { height: 5px; border-radius: 3px; background: var(--green); }
+    .prop-pct  { font-family: 'Roboto Mono', monospace; font-size: .72rem; color: var(--muted); }
+
+    /* ── Footer ──────────────────────────────────────────────────────────────── */
+    .footer {
+      text-align: center; color: var(--muted); font-size: .75rem;
+      border-top: 1px solid var(--border); padding-top: 20px;
+    }
+    .footer a { color: var(--gold); text-decoration: none; }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ── Top bar ─────────────────────────────────────────────────────────── -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <i class="fa-solid fa-earth-americas logo-icon"></i>
+      <div>
+        <div class="logo-text">VinelandEternal <span>Empire</span></div>
+        <div style="font-size:.72rem;color:var(--muted);font-family:'Roboto Mono',monospace;">Financial Perfection Dashboard</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="live-badge"><div class="live-dot"></div> LIVE</div>
+      <div class="clock" id="clock">—</div>
+      <span style="font-family:'Roboto Mono',monospace;font-size:.78rem;color:var(--muted);">Polygon Mainnet</span>
+    </div>
+  </div>
+
+  <!-- ── KPI row ─────────────────────────────────────────────────────────── -->
+  <div class="section-label">Core Metrics · Live</div>
+  <div class="kpi-grid" id="kpiGrid">
+    <div class="kpi-card gold">
+      <div class="kpi-icon"><i class="fa-solid fa-coins"></i></div>
+      <div class="kpi-value" id="kpi-price">$0.047</div>
+      <div class="kpi-label">$MIRROR Price</div>
+      <div class="kpi-delta up" id="kpi-price-d">▲ +0.00%</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-icon"><i class="fa-solid fa-water"></i></div>
+      <div class="kpi-value" id="kpi-tvl">$0</div>
+      <div class="kpi-label">Total Value Locked</div>
+      <div class="kpi-delta up" id="kpi-tvl-d">▲ +0.00%</div>
+    </div>
+    <div class="kpi-card blue">
+      <div class="kpi-icon"><i class="fa-solid fa-chart-bar"></i></div>
+      <div class="kpi-value" id="kpi-vol">$0</div>
+      <div class="kpi-label">24h Volume</div>
+      <div class="kpi-delta up" id="kpi-vol-d">▲ +0.00%</div>
+    </div>
+    <div class="kpi-card purple">
+      <div class="kpi-icon"><i class="fa-solid fa-users"></i></div>
+      <div class="kpi-value" id="kpi-dao">0</div>
+      <div class="kpi-label">DAO Members</div>
+      <div class="kpi-delta up" id="kpi-dao-d">▲ +0</div>
+    </div>
+    <div class="kpi-card amber">
+      <div class="kpi-icon"><i class="fa-solid fa-vault"></i></div>
+      <div class="kpi-value" id="kpi-treasury">$0</div>
+      <div class="kpi-label">DAO Treasury</div>
+      <div class="kpi-delta up" id="kpi-treasury-d">▲ +0.00%</div>
+    </div>
+    <div class="kpi-card red">
+      <div class="kpi-icon"><i class="fa-solid fa-robot"></i></div>
+      <div class="kpi-value" id="kpi-bot">+$0</div>
+      <div class="kpi-label">QFS Bot PnL (24h)</div>
+      <div class="kpi-delta up" id="kpi-bot-d">ROI: 0%</div>
+    </div>
+  </div>
+
+  <!-- ── Price chart + Revenue + Activity ─────────────────────────────────── -->
+  <div class="mid-grid">
+
+    <!-- Price chart -->
+    <div class="panel">
+      <div class="panel-title">
+        <i class="fa-solid fa-chart-line" style="color:var(--gold)"></i>
+        $MIRROR Price (30 min)
+      </div>
+      <div class="price-chart">
+        <canvas id="priceCanvas"></canvas>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:.72rem;font-family:'Roboto Mono',monospace;color:var(--muted);">
+        <span id="chartLow">Low: —</span>
+        <span id="chartHigh">High: —</span>
+      </div>
+    </div>
+
+    <!-- Revenue breakdown -->
+    <div class="panel">
+      <div class="panel-title">
+        <i class="fa-solid fa-money-bill-trend-up" style="color:var(--green)"></i>
+        Revenue Streams (Monthly)
+      </div>
+      <div class="rev-row"><span class="rev-label">NFT Royalties (5%)</span>       <span class="rev-val" id="rev-nft">$0</span></div>
+      <div class="rev-row"><span class="rev-label">Staking Fee Capture</span>      <span class="rev-val" id="rev-stake">$0</span></div>
+      <div class="rev-row"><span class="rev-label">DAO Treasury Yield (Aave)</span><span class="rev-val" id="rev-yield">$0</span></div>
+      <div class="rev-row"><span class="rev-label">QFS Bot Profits</span>          <span class="rev-val" id="rev-bot">$0</span></div>
+      <div class="rev-row"><span class="rev-label">Grant Funding</span>            <span class="rev-val" id="rev-grant">$0</span></div>
+      <div class="rev-row" style="border-top:1px solid var(--gold);margin-top:4px;padding-top:8px;">
+        <span style="color:var(--gold);font-weight:700;">Total ARR (Projected)</span>
+        <span class="rev-val" id="rev-total" style="color:var(--gold);">$0</span>
+      </div>
+      <div style="margin-top:14px;">
+        <div class="prog-row">
+          <div class="prog-header"><span class="prog-label">TVL Target ($100M)</span><span class="prog-val" id="prog-tvl-pct">0%</span></div>
+          <div class="prog-track"><div class="prog-fill gold" id="prog-tvl-bar" style="width:0%"></div></div>
+        </div>
+        <div class="prog-row">
+          <div class="prog-header"><span class="prog-label">DAO Target (100K members)</span><span class="prog-val" id="prog-dao-pct">0%</span></div>
+          <div class="prog-track"><div class="prog-fill blue" id="prog-dao-bar" style="width:0%"></div></div>
+        </div>
+        <div class="prog-row">
+          <div class="prog-header"><span class="prog-label">ARR Target ($50M)</span><span class="prog-val" id="prog-rev-pct">0%</span></div>
+          <div class="prog-track"><div class="prog-fill green" id="prog-rev-bar" style="width:0%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Activity feed -->
+    <div class="panel">
+      <div class="panel-title">
+        <i class="fa-solid fa-bolt" style="color:var(--amber)"></i>
+        Live Activity Feed
+      </div>
+      <div id="feedList" style="max-height:340px;overflow-y:auto;"></div>
+    </div>
+
+  </div>
+
+  <!-- ── QFS Bot console + DAO proposals ──────────────────────────────────── -->
+  <div class="bottom-grid">
+
+    <!-- QFS Bot -->
+    <div class="panel">
+      <div class="panel-title">
+        <i class="fa-solid fa-robot" style="color:var(--red)"></i>
+        QFS Trading Bot — Live Console
+        <span style="margin-left:auto;font-family:'Roboto Mono',monospace;font-size:.7rem;color:var(--muted);" id="botTick">tick 0</span>
+      </div>
+      <div class="bot-console" id="botConsole"></div>
+      <div style="display:flex;gap:14px;margin-top:12px;flex-wrap:wrap;">
+        <div style="font-size:.78rem;">
+          <span style="color:var(--muted);">Fast EMA: </span>
+          <span id="botFast" style="font-family:'Roboto Mono',monospace;color:var(--blue);">—</span>
+        </div>
+        <div style="font-size:.78rem;">
+          <span style="color:var(--muted);">Slow EMA: </span>
+          <span id="botSlow" style="font-family:'Roboto Mono',monospace;color:var(--purple);">—</span>
+        </div>
+        <div style="font-size:.78rem;">
+          <span style="color:var(--muted);">Trades: </span>
+          <span id="botTrades" style="font-family:'Roboto Mono',monospace;color:var(--green);">0</span>
+        </div>
+        <div style="font-size:.78rem;">
+          <span style="color:var(--muted);">PnL: </span>
+          <span id="botPnl" style="font-family:'Roboto Mono',monospace;color:var(--green);">$0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- DAO proposals -->
+    <div class="panel">
+      <div class="panel-title">
+        <i class="fa-solid fa-landmark" style="color:var(--blue)"></i>
+        Mars DAO — Active Proposals
+      </div>
+      <div id="propList"></div>
+      <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
+        <div style="font-size:.78rem;"><span style="color:var(--muted);">Members: </span><span id="daoMembers" style="font-family:'Roboto Mono',monospace;color:var(--purple);">—</span></div>
+        <div style="font-size:.78rem;"><span style="color:var(--muted);">Treasury: </span><span id="daoTreasury2" style="font-family:'Roboto Mono',monospace;color:var(--gold);">—</span></div>
+        <div style="font-size:.78rem;"><span style="color:var(--muted);">Proposals Passed: </span><span id="daoPassed" style="font-family:'Roboto Mono',monospace;color:var(--green);">—</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Hub map + Staking ─────────────────────────────────────────────────── -->
+  <div class="bottom-grid">
+
+    <!-- Hub map -->
+    <div class="panel">
+      <div class="panel-title">
+        <i class="fa-solid fa-globe" style="color:var(--green)"></i>
+        Global Agape Hubs
+      </div>
+      <div class="hub-map">
+        <canvas id="hubCanvas"></canvas>
+        <div class="hub-count" id="hubCount">0 Active Hubs</div>
+      </div>
+    </div>
+
+    <!-- Staking distribution -->
+    <div class="panel">
+      <div class="panel-title">
+        <i class="fa-solid fa-layer-group" style="color:var(--purple)"></i>
+        $MIRROR Token Distribution &amp; Staking
+      </div>
+      <div class="prog-row">
+        <div class="prog-header"><span class="prog-label">Settler Rewards (35%)</span><span class="prog-val">350M</span></div>
+        <div class="prog-track"><div class="prog-fill gold" style="width:35%"></div></div>
+      </div>
+      <div class="prog-row">
+        <div class="prog-header"><span class="prog-label">Treasury Reserve (25%)</span><span class="prog-val">250M</span></div>
+        <div class="prog-track"><div class="prog-fill amber" style="width:25%"></div></div>
+      </div>
+      <div class="prog-row">
+        <div class="prog-header"><span class="prog-label">Founders — 4yr vest (20%)</span><span class="prog-val">200M</span></div>
+        <div class="prog-track"><div class="prog-fill purple" style="width:20%"></div></div>
+      </div>
+      <div class="prog-row">
+        <div class="prog-header"><span class="prog-label">Public Sale (15%)</span><span class="prog-val">150M</span></div>
+        <div class="prog-track"><div class="prog-fill blue" style="width:15%"></div></div>
+      </div>
+      <div class="prog-row">
+        <div class="prog-header"><span class="prog-label">Ecosystem Grants (5%)</span><span class="prog-val">50M</span></div>
+        <div class="prog-track"><div class="prog-fill green" style="width:5%"></div></div>
+      </div>
+      <div style="margin-top:16px;display:flex;gap:14px;flex-wrap:wrap;">
+        <div class="kpi-card green" style="flex:1;min-width:110px;padding:12px 14px;">
+          <div class="kpi-icon" style="font-size:.9rem;"><i class="fa-solid fa-lock"></i></div>
+          <div class="kpi-value" style="font-size:1.2rem;" id="stakeAmt">0M</div>
+          <div class="kpi-label">Staked $MIRROR</div>
+        </div>
+        <div class="kpi-card gold" style="flex:1;min-width:110px;padding:12px 14px;">
+          <div class="kpi-icon" style="font-size:.9rem;"><i class="fa-solid fa-percent"></i></div>
+          <div class="kpi-value" style="font-size:1.2rem;" id="stakeApy">—%</div>
+          <div class="kpi-label">Current APY</div>
+        </div>
+        <div class="kpi-card amber" style="flex:1;min-width:110px;padding:12px 14px;">
+          <div class="kpi-icon" style="font-size:.9rem;"><i class="fa-solid fa-fire"></i></div>
+          <div class="kpi-value" style="font-size:1.2rem;" id="zakatAmt">$0</div>
+          <div class="kpi-label">Zakat Distributed</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    VinelandEternal &nbsp;·&nbsp;
+    <a href="https://github.com/chaishillomnitech1/VinelandEternal" target="_blank">GitHub</a> &nbsp;·&nbsp;
+    Polygon Mainnet &nbsp;·&nbsp; $MIRROR &nbsp;·&nbsp;
+    All metrics are simulated for demonstration — connect a Web3 provider for live on-chain data.
+  </div>
+
+</div><!-- /page -->
+
+<!-- ── Canvas charts + simulation engine ──────────────────────────────────── -->
+<script>
+"use strict";
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+
+function fmt(n, prefix="$", decimals=2) {
+  if (n >= 1e9) return prefix + (n/1e9).toFixed(2) + "B";
+  if (n >= 1e6) return prefix + (n/1e6).toFixed(2) + "M";
+  if (n >= 1e3) return prefix + (n/1e3).toFixed(1) + "K";
+  return prefix + n.toFixed(decimals);
+}
+function fmtNum(n) {
+  return n >= 1e6 ? (n/1e6).toFixed(2)+"M"
+       : n >= 1e3 ? (n/1e3).toFixed(1)+"K"
+       : n.toFixed(0);
+}
+function delta(pct, prefix="▲ +") {
+  return pct >= 0
+    ? { cls:"up", text:`▲ +${pct.toFixed(2)}%` }
+    : { cls:"down", text:`▼ ${pct.toFixed(2)}%` };
+}
+
+// ── Clock ─────────────────────────────────────────────────────────────────────
+function updateClock() {
+  $("clock").textContent = new Date().toUTCString().replace("GMT","UTC");
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ── Price history simulation ──────────────────────────────────────────────────
+const PRICE_HISTORY = [];
+const MAX_PRICE_POINTS = 60;
+let price = 0.047;
+
+function nextPrice() {
+  const drift = (Math.random() - 0.46) * 0.0004;
+  price = Math.max(0.001, price * (1 + drift));
+  if (PRICE_HISTORY.length >= MAX_PRICE_POINTS) PRICE_HISTORY.shift();
+  PRICE_HISTORY.push(price);
+}
+
+// Warm up
+for (let i = 0; i < 40; i++) nextPrice();
+
+// ── Price canvas ──────────────────────────────────────────────────────────────
+const priceCanvas = $("priceCanvas");
+const pc = priceCanvas.getContext("2d");
+
+function resizePriceCanvas() {
+  priceCanvas.width  = priceCanvas.offsetWidth;
+  priceCanvas.height = priceCanvas.offsetHeight;
+}
+window.addEventListener("resize", resizePriceCanvas);
+resizePriceCanvas();
+
+function drawPriceChart() {
+  const W = priceCanvas.width, H = priceCanvas.height;
+  if (!W || !H || PRICE_HISTORY.length < 2) return;
+  pc.clearRect(0, 0, W, H);
+
+  const lo = Math.min(...PRICE_HISTORY) * 0.998;
+  const hi = Math.max(...PRICE_HISTORY) * 1.002;
+  const range = hi - lo || 0.0001;
+
+  const x = i => i / (MAX_PRICE_POINTS - 1) * W;
+  const y = v => H - (v - lo) / range * H;
+
+  // Fill gradient
+  const grad = pc.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0, "rgba(255,215,0,.25)");
+  grad.addColorStop(1, "rgba(255,215,0,0)");
+  pc.beginPath();
+  pc.moveTo(x(0), y(PRICE_HISTORY[0]));
+  for (let i = 1; i < PRICE_HISTORY.length; i++) pc.lineTo(x(i), y(PRICE_HISTORY[i]));
+  pc.lineTo(x(PRICE_HISTORY.length - 1), H);
+  pc.lineTo(x(0), H);
+  pc.closePath();
+  pc.fillStyle = grad;
+  pc.fill();
+
+  // Line
+  pc.beginPath();
+  pc.moveTo(x(0), y(PRICE_HISTORY[0]));
+  for (let i = 1; i < PRICE_HISTORY.length; i++) pc.lineTo(x(i), y(PRICE_HISTORY[i]));
+  pc.strokeStyle = "#ffd700";
+  pc.lineWidth = 2;
+  pc.stroke();
+
+  // Labels
+  $("chartLow").textContent  = "Low: $" + lo.toFixed(5);
+  $("chartHigh").textContent = "High: $" + hi.toFixed(5);
+}
+
+// ── Hub map canvas ────────────────────────────────────────────────────────────
+const hubCanvas  = $("hubCanvas");
+const hc = hubCanvas.getContext("2d");
+
+// Approximate hub coordinates (normalised 0-1 over a flat projection)
+const HUB_COORDS = [
+  [0.22,0.35],[0.26,0.42],[0.30,0.38],[0.18,0.30],[0.34,0.45],
+  [0.50,0.34],[0.54,0.28],[0.48,0.40],[0.56,0.36],[0.60,0.42],
+  [0.65,0.50],[0.72,0.60],[0.68,0.45],[0.76,0.55],[0.80,0.48],
+  [0.15,0.62],[0.12,0.55],[0.20,0.68],[0.25,0.60],[0.30,0.72],
+  [0.40,0.60],[0.44,0.68],[0.35,0.65],[0.38,0.55],[0.42,0.72],
+  [0.52,0.62],[0.58,0.68],[0.48,0.70],[0.62,0.60],[0.55,0.74],
+  [0.70,0.65],[0.75,0.72],[0.80,0.60],[0.85,0.68],[0.82,0.78],
+  [0.10,0.45],[0.08,0.38],[0.14,0.50],[0.06,0.55],[0.16,0.42],
+  [0.90,0.40],[0.88,0.52],[0.92,0.58],[0.86,0.62],[0.94,0.48],
+];
+let hubPulse = 0;
+
+function resizeHubCanvas() {
+  hubCanvas.width  = hubCanvas.offsetWidth;
+  hubCanvas.height = hubCanvas.offsetHeight;
+}
+window.addEventListener("resize", resizeHubCanvas);
+resizeHubCanvas();
+
+function drawHubMap() {
+  const W = hubCanvas.width, H = hubCanvas.height;
+  if (!W || !H) return;
+  hc.clearRect(0, 0, W, H);
+  hubPulse = (hubPulse + 0.03) % (Math.PI * 2);
+
+  // Dark background gradient
+  const bg = hc.createRadialGradient(W/2, H/2, 0, W/2, H/2, W*0.7);
+  bg.addColorStop(0, "#0a0a20");
+  bg.addColorStop(1, "#050510");
+  hc.fillStyle = bg;
+  hc.fillRect(0, 0, W, H);
+
+  // Draw hubs
+  HUB_COORDS.forEach(([nx, ny], i) => {
+    const cx = nx * W, cy = ny * H;
+    const phase = (i * 0.7 + hubPulse) % (Math.PI * 2);
+    const r = 3 + Math.sin(phase) * 1.5;
+
+    // Pulse ring
+    hc.beginPath();
+    hc.arc(cx, cy, r * 3, 0, Math.PI * 2);
+    hc.strokeStyle = `rgba(0,230,118,${0.1 + Math.sin(phase) * 0.08})`;
+    hc.lineWidth = 1;
+    hc.stroke();
+
+    // Dot
+    hc.beginPath();
+    hc.arc(cx, cy, r, 0, Math.PI * 2);
+    hc.fillStyle = `rgba(0,230,118,${0.6 + Math.sin(phase) * 0.3})`;
+    hc.fill();
+  });
+
+  $("hubCount").textContent = HUB_COORDS.length + " Active Hubs";
+}
+
+// ── QFS Bot simulation ────────────────────────────────────────────────────────
+let fastEma = price, slowEma = price;
+let botTick = 0, botTrades = 0, botPnl = 0;
+const FAST_K = 2 / (12 + 1), SLOW_K = 2 / (26 + 1);
+const botConsole = $("botConsole");
+
+function botLog(line, cls = "") {
+  const ts = new Date().toLocaleTimeString("en-US", { hour12: false });
+  const el = document.createElement("div");
+  el.innerHTML = `<span class="ts">[${ts}]</span> <span class="${cls}">${line}</span>`;
+  botConsole.appendChild(el);
+  if (botConsole.children.length > 80) botConsole.removeChild(botConsole.firstChild);
+  botConsole.scrollTop = botConsole.scrollHeight;
+}
+
+function stepBot() {
+  fastEma = price * FAST_K + fastEma * (1 - FAST_K);
+  slowEma = price * SLOW_K + slowEma * (1 - SLOW_K);
+  const dev = (fastEma - slowEma) / slowEma * 100;
+  const signal = dev >= 2 ? "BUY" : dev <= -2 ? "SELL" : "HOLD";
+
+  const line = `tick=${botTick} price=$${price.toFixed(5)} fast=$${fastEma.toFixed(5)} slow=$${slowEma.toFixed(5)} dev=${dev>0?"+":""}${dev.toFixed(2)}% → ${signal}`;
+  botLog(line, signal.toLowerCase());
+
+  if (signal !== "HOLD") {
+    const pnl = 100 * Math.abs(dev) / 100 * (Math.random() * 0.5 + 0.75);
+    botPnl += pnl;
+    botTrades++;
+    botLog(`  🤖 Executed ${signal} 100 $MIRROR | PnL: +$${pnl.toFixed(2)}`, signal === "BUY" ? "buy" : "sell");
+  }
+
+  $("botTick").textContent   = `tick ${botTick}`;
+  $("botFast").textContent   = `$${fastEma.toFixed(5)}`;
+  $("botSlow").textContent   = `$${slowEma.toFixed(5)}`;
+  $("botTrades").textContent = botTrades;
+  $("botPnl").textContent    = `$${botPnl.toFixed(2)}`;
+  botTick++;
+}
+
+// ── Activity feed simulation ──────────────────────────────────────────────────
+const ACTIVITIES = [
+  () => ({ type:"buy",    text:`${randWallet()} bought ${(Math.random()*500+50).toFixed(0)} $MIRROR` }),
+  () => ({ type:"sell",   text:`${randWallet()} sold ${(Math.random()*200+20).toFixed(0)} $MIRROR` }),
+  () => ({ type:"stake",  text:`${randWallet()} staked ${(Math.random()*1000+100).toFixed(0)} $MIRROR` }),
+  () => ({ type:"vote",   text:`${randWallet()} voted YES on Proposal #${(Math.random()*20+1).toFixed(0)}` }),
+  () => ({ type:"mint",   text:`${randWallet()} minted Consciousness NFT #${(Math.random()*500+1).toFixed(0)}` }),
+  () => ({ type:"reward", text:`${randWallet()} claimed ${(Math.random()*50+5).toFixed(2)} $MIRROR rewards` }),
+];
+function randWallet() {
+  const h = "0123456789abcdef";
+  const a = Array.from({length:8},()=>h[Math.floor(Math.random()*16)]).join("");
+  return `0x${a}…`;
+}
+const feedList = $("feedList");
+function addFeedItem() {
+  const act = ACTIVITIES[Math.floor(Math.random()*ACTIVITIES.length)]();
+  const ts  = new Date().toLocaleTimeString("en-US",{hour12:false});
+  const el  = document.createElement("div");
+  el.className = "feed-item";
+  el.innerHTML = `<div class="feed-dot ${act.type}"></div>
+    <div><div class="feed-text">${act.text}</div>
+    <div class="feed-ts">${ts}</div></div>`;
+  feedList.insertBefore(el, feedList.firstChild);
+  if (feedList.children.length > 20) feedList.removeChild(feedList.lastChild);
+}
+
+// ── DAO proposals ─────────────────────────────────────────────────────────────
+const PROPOSALS = [
+  { title:"Martian Microgreen Lab Expansion",    status:"active",  pct:73, ask:"$250K" },
+  { title:"Starlink Tray Sensor Network (NJ)",   status:"active",  pct:61, ask:"$500K" },
+  { title:"Lunar Gateway DAO Sub-Treaty",        status:"pending", pct:41, ask:"$1M" },
+  { title:"Drone Alchemic Grid — DE Region",     status:"passed",  pct:89, ask:"$180K" },
+  { title:"QFS Bot Treasury Allocation",         status:"passed",  pct:94, ask:"$50K" },
+];
+function renderProposals() {
+  const pl = $("propList");
+  pl.innerHTML = "";
+  PROPOSALS.forEach(p => {
+    const el = document.createElement("div");
+    el.className = "prop-item";
+    el.innerHTML = `
+      <div class="prop-title">${p.title}</div>
+      <div class="prop-meta">
+        <span class="prop-tag ${p.status}">${p.status}</span>
+        <div class="prop-vote-bar"><div class="prop-vote-fill" style="width:${p.pct}%"></div></div>
+        <span class="prop-pct">${p.pct}%</span>
+        <span style="color:var(--muted);font-size:.72rem;">${p.ask}</span>
+      </div>`;
+    pl.appendChild(el);
+  });
+}
+renderProposals();
+
+// ── State simulation ──────────────────────────────────────────────────────────
+let tvl        = 2_470_000;
+let volume24h  = 890_000;
+let daoMembers = 10_247;
+let treasury   = 3_100_000;
+let staked     = 142_000_000;
+
+let prevPrice   = price;
+let prevTvl     = tvl;
+let prevVol     = volume24h;
+let prevMembers = daoMembers;
+let prevTreasury= treasury;
+let botPnl24    = 47_892;
+
+let zakatTotal = 0;
+let tickCount  = 0;
+
+function updateKpis() {
+  // Drift all metrics
+  tvl        += tvl        * (Math.random() - 0.48) * 0.003;
+  volume24h  += volume24h  * (Math.random() - 0.46) * 0.005;
+  daoMembers += Math.floor(Math.random() * 4);
+  treasury   += treasury   * (Math.random() - 0.47) * 0.002;
+  botPnl24   += (Math.random() - 0.45) * 80;
+  zakatTotal += tvl * 0.000025 * 0.001;
+
+  const priceDelta   = (price - prevPrice)    / prevPrice    * 100;
+  const tvlDelta     = (tvl   - prevTvl)      / prevTvl      * 100;
+  const volDelta     = (volume24h-prevVol)     / prevVol      * 100;
+  const membersDelta = daoMembers - prevMembers;
+  const treasuryDelta= (treasury-prevTreasury)/ prevTreasury * 100;
+
+  // Price
+  $("kpi-price").textContent = "$" + price.toFixed(5);
+  const pd = delta(priceDelta); $("kpi-price-d").textContent = pd.text; $("kpi-price-d").className = "kpi-delta " + pd.cls;
+
+  // TVL
+  $("kpi-tvl").textContent = fmt(tvl);
+  const td = delta(tvlDelta); $("kpi-tvl-d").textContent = td.text; $("kpi-tvl-d").className = "kpi-delta " + td.cls;
+
+  // Volume
+  $("kpi-vol").textContent = fmt(volume24h);
+  const vd = delta(volDelta); $("kpi-vol-d").textContent = vd.text; $("kpi-vol-d").className = "kpi-delta " + vd.cls;
+
+  // DAO Members
+  $("kpi-dao").textContent = fmtNum(daoMembers);
+  $("kpi-dao-d").textContent = `▲ +${membersDelta} today`; $("kpi-dao-d").className = "kpi-delta up";
+
+  // Treasury
+  $("kpi-treasury").textContent = fmt(treasury);
+  const trD = delta(treasuryDelta); $("kpi-treasury-d").textContent = trD.text; $("kpi-treasury-d").className = "kpi-delta " + trD.cls;
+
+  // Bot PnL
+  $("kpi-bot").textContent = "+" + fmt(botPnl24);
+  $("kpi-bot-d").textContent = "ROI: " + (botPnl24 / 1000 * 100).toFixed(0) + "%"; $("kpi-bot-d").className = "kpi-delta up";
+
+  // Revenue
+  const revNft   = tvl * 0.05 / 12;
+  const revStake = staked * price * 0.02 / 12;
+  const revYield = treasury * 0.15 / 12;
+  const revBot   = botPnl24 * 30;
+  const revGrant = 166_667;
+  const revTotal = revNft + revStake + revYield + revBot + revGrant;
+
+  $("rev-nft").textContent   = fmt(revNft);
+  $("rev-stake").textContent = fmt(revStake);
+  $("rev-yield").textContent = fmt(revYield);
+  $("rev-bot").textContent   = fmt(revBot);
+  $("rev-grant").textContent = fmt(revGrant);
+  $("rev-total").textContent = fmt(revTotal * 12);
+
+  // Progress
+  const tvlPct = Math.min(tvl / 100_000_000 * 100, 100).toFixed(1);
+  const daoPct = Math.min(daoMembers / 100_000 * 100, 100).toFixed(1);
+  const revPct = Math.min(revTotal * 12 / 50_000_000 * 100, 100).toFixed(1);
+  $("prog-tvl-pct").textContent = tvlPct + "%"; $("prog-tvl-bar").style.width = tvlPct + "%";
+  $("prog-dao-pct").textContent = daoPct + "%"; $("prog-dao-bar").style.width = daoPct + "%";
+  $("prog-rev-pct").textContent = revPct + "%"; $("prog-rev-bar").style.width = revPct + "%";
+
+  // DAO details
+  $("daoMembers").textContent  = fmtNum(daoMembers);
+  $("daoTreasury2").textContent= fmt(treasury);
+  $("daoPassed").textContent   = (2 + Math.floor(tickCount / 20)).toString();
+
+  // Staking
+  staked += staked * 0.0001;
+  $("stakeAmt").textContent  = fmtNum(staked);
+  $("stakeApy").textContent  = (86.4 * price / 1 * 365).toFixed(1) + "%";
+  $("zakatAmt").textContent  = fmt(zakatTotal);
+
+  prevPrice    = price;
+  prevTvl      = tvl;
+  prevVol      = volume24h;
+  prevMembers  = daoMembers;
+  prevTreasury = treasury;
+  tickCount++;
+}
+
+// ── Main render loop ──────────────────────────────────────────────────────────
+let botInterval = 0;
+function tick() {
+  nextPrice();
+  updateKpis();
+  drawPriceChart();
+  drawHubMap();
+  if (botInterval % 3 === 0) stepBot();
+  if (botInterval % 5 === 0) addFeedItem();
+  botInterval++;
+}
+
+// Initial render
+for (let i = 0; i < 3; i++) addFeedItem();
+botLog("QFS Trading Bot — initialising…");
+botLog("Connected to Polygon RPC");
+botLog("$MIRROR pool loaded — monitoring…");
+
+tick();
+setInterval(tick, 2000);
+</script>
+</body>
+</html>
