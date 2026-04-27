@@ -154,6 +154,69 @@ npm run deposit-rewards:polygon
 
 ---
 
+## Mars DAO — On-Chain Civilization Governance 🔴🚀
+
+The Mars DAO system provides a full three-tier governance framework for decentralized civilization. All contracts are deployed on Polygon and integrate seamlessly with the existing ScrollVerse token economy.
+
+### Mars DAO Contract Architecture
+
+| Contract | Symbol | Description |
+|---|---|---|
+| `MarsToken` | `$MARS` | ERC-20 with 2.5% Zakat + 1% Governance Reserve on every transfer |
+| `MarsDAO` | — | Three-tier governance: Core Council · 5 Guilds · Community token voting |
+
+### Governance Features
+
+| Feature | Implementation |
+|---|---|
+| **Voting modes** | Linear (1 token = 1 vote) or Quadratic (√ balance) |
+| **Proposal types** | Standard · Treasury · Constitutional (67%) · Emergency |
+| **Treasury protection** | 7-day timelock + 3-of-5 Council multisig |
+| **Zakat** | 2.5% auto-deducted from every treasury disbursement |
+| **Governance reserve** | 1% of every $MARS transfer → on-chain reserve |
+| **Recall** | Any holder initiates; 50%+1 removes any council seat |
+| **Guilds** | TechGuild · AgriGuild · HealthGuild · EduGuild · CivicsGuild |
+| **Cross-DAO** | Register external DAOs; $MIRROR holders have secondary weight |
+| **Health metrics** | Live on-chain: pass rate, vote counts, zakat accumulated |
+
+### Mars DAO Quick Start
+
+```bash
+# After completing the ScrollVerse Quick Start above:
+
+# Deploy $MARS token and MarsDAO governance contract
+# Set COUNCIL_0..COUNCIL_4 and MIRROR_TOKEN_ADDRESS in .env first
+npm run deploy-mars-dao:mumbai   # testnet
+npm run deploy-mars-dao:polygon  # mainnet
+
+# Open the 22-slide presentation
+open frontend/mars-dao/index.html
+
+# Read the full governance documentation
+cat docs/mars-dao/presentation-script.md
+cat docs/mars-dao/slides-content.md
+```
+
+### Mars DAO Environment Variables
+
+| Variable | Description |
+|---|---|
+| `MARS_INITIAL_SUPPLY` | Initial $MARS supply in whole tokens (default: 1,000,000) |
+| `ZAKAT_TREASURY` | Recipient of 2.5% zakat on all $MARS transfers and treasury disbursements |
+| `COUNCIL_0` … `COUNCIL_4` | Five founding Core Council member addresses |
+| `MIRROR_TOKEN_ADDRESS` | Deployed MirrorToken address (secondary governance weight) |
+| `REWARD_RATE` | Per-vote participation reward in $MARS wei (0 to disable) |
+
+### Governance Presentation
+
+A complete 22-slide HTML presentation is included at `frontend/mars-dao/index.html`:
+- Self-contained, no server required — open directly in any browser
+- Keyboard navigation (←/→/Space) and touch swipe support
+- Mars-themed design: #B71C1C titles · #ECEFF1 background · monospace body
+- Covers: crisis → architecture → token economy → treasury → proposal lifecycle → 4 types → guilds → security → roadmap → vision → call to action
+
+---
+
 Every line of code, document, or metric deposited here must reflect two principles:
 
 1. **Agape Love**: Let your intent be to uplift every being touched by this repository.
