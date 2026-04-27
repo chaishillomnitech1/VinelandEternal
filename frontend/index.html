@@ -433,11 +433,13 @@
 
 <!-- ── ethers.js v6 via CDN ────────────────────────────────────────────── -->
 <!--
-  PRODUCTION NOTE: Replace this CDN tag with a locally-hosted copy of ethers
-  or add an integrity="sha384-…" Subresource Integrity hash for security.
-  To get the SRI hash: https://www.srihash.org/ using the URL below.
+  ethers.js 6.16.0 loaded from cdnjs with Subresource Integrity (SRI) verification.
+  The integrity hash was computed from the npm package distribution file:
+    node -e "const c=require('crypto'),fs=require('fs'); ... "
+  Regenerate with: cat node_modules/ethers/dist/ethers.umd.min.js | openssl dgst -sha512 -binary | base64
 -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.16.0/ethers.umd.min.js"
+        integrity="sha512-fi3MXL4HbRwtGAU92iW0bCH2ZzZ8GyjROitInFB9v4UAqfCDMo8eVNQXZH6o/3nLqbepfJoeXjUEPK6auphhtg=="
         crossorigin="anonymous"
         referrerpolicy="no-referrer"></script>
 <script>

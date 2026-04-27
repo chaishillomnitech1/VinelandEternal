@@ -50,7 +50,7 @@ class GrantConfig:
     amount_max:  int
     api_base:    str
     env_app_id:  str                     # env var holding the application ID
-    env_api_key: str                     # env var holding the API key / JWT
+    env_auth_var: str                     # env var holding the API key / JWT
     focus:       list[str] = field(default_factory=list)
     status:      str = "in_preparation"  # in_preparation | submitted | awarded | declined
 
@@ -65,7 +65,7 @@ GRANTS: dict[str, GrantConfig] = {
         amount_max=75_000,
         api_base=os.environ.get("SIMPLIGOV_API", "https://simpligov.com/api/v1"),
         env_app_id="SCBGP_APP_ID",
-        env_api_key="SIMPLIGOV_API_KEY",
+        env_auth_var="SIMPLIGOV_API_KEY",
         focus=["IoT sensor kits", "AR Harvest Visor", "agape marketplace", "co-op workshops"],
         status="submission_ready",
     ),
@@ -78,7 +78,7 @@ GRANTS: dict[str, GrantConfig] = {
         amount_max=30_000,
         api_base=os.environ.get("SARE_API", "https://northeast.sare.org/api"),
         env_app_id="SARE_APP_ID",
-        env_api_key="SARE_API_KEY",
+        env_auth_var="SARE_API_KEY",
         focus=["regenerative microgreens", "drone redistribution", "community food security"],
     ),
     "sadc": GrantConfig(
@@ -90,7 +90,7 @@ GRANTS: dict[str, GrantConfig] = {
         amount_max=20_000,
         api_base=os.environ.get("SADC_API", "https://sadc.nj.gov/api"),
         env_app_id="SADC_APP_ID",
-        env_api_key="SADC_API_KEY",
+        env_auth_var="SADC_API_KEY",
         focus=["specialty crop expansion", "sustainable farming infrastructure"],
     ),
     "cumberland": GrantConfig(
@@ -102,7 +102,7 @@ GRANTS: dict[str, GrantConfig] = {
         amount_max=10_000,
         api_base=os.environ.get("CUMBERLAND_API", "https://co.cumberland.nj.us/agenhancement/api"),
         env_app_id="CUMBERLAND_APP_ID",
-        env_api_key="CUMBERLAND_API_KEY",
+        env_auth_var="CUMBERLAND_API_KEY",
         focus=["local food system", "IoT agriculture", "youth ag education"],
     ),
     # --- West Coast regional grants ---
@@ -115,7 +115,7 @@ GRANTS: dict[str, GrantConfig] = {
         amount_max=100_000,
         api_base=os.environ.get("WA_SCBGP_API", "https://agr.wa.gov/api/v1"),
         env_app_id="WA_SCBGP_APP_ID",
-        env_api_key="WA_SCBGP_API_KEY",
+        env_auth_var="WA_SCBGP_API_KEY",
         focus=["specialty crop expansion", "IoT sensors", "drone redistribution", "urban food security"],
         status="in_preparation",
     ),
@@ -128,7 +128,7 @@ GRANTS: dict[str, GrantConfig] = {
         amount_max=75_000,
         api_base=os.environ.get("OR_SCBGP_API", "https://oregon.gov/ODA/programs/MarketAccess/api"),
         env_app_id="OR_SCBGP_APP_ID",
-        env_api_key="OR_SCBGP_API_KEY",
+        env_auth_var="OR_SCBGP_API_KEY",
         focus=["regenerative microgreens", "AR harvest technology", "community food resilience"],
         status="in_preparation",
     ),
@@ -141,7 +141,7 @@ GRANTS: dict[str, GrantConfig] = {
         amount_max=200_000,
         api_base=os.environ.get("CA_CDFA_API", "https://www.cdfa.ca.gov/grants/api/v1"),
         env_app_id="CA_CDFA_APP_ID",
-        env_api_key="CA_CDFA_API_KEY",
+        env_auth_var="CA_CDFA_API_KEY",
         focus=["specialty crop competitiveness", "IoT agriculture", "drone delivery", "community resilience"],
         status="in_preparation",
     ),
@@ -206,7 +206,7 @@ def build_application_payload(grant: GrantConfig, profile: ApplicantProfile) -> 
 # ---------------------------------------------------------------------------
 
 def _headers(grant: GrantConfig) -> dict:
-    api_key = os.environ.get(grant.env_api_key, "")
+    api_key = os.environ.get(grant.env_auth_var, "")
     return {
         "Authorization": f"Bearer {api_key}",
         "Content-Type":  "application/json",
@@ -243,16 +243,16 @@ def submit_application(grant: GrantConfig, profile: ApplicantProfile, dry_run: b
         print(json.dumps(payload, indent=2))
         return {"dry_run": True, "payload_keys": list(payload.keys())}
 
-    if not os.environ.get(grant.env_app_id) or not os.environ.get(grant.env_api_key):
+    if not os.environ.get(grant.env_app_id) or not os.environ.get(grant.env_auth_var):
         print(
             f"⚠️  Required environment variables not set.\n"
-            f"   Set {grant.env_app_id} and {grant.env_api_key} to submit.\n"
+            f"   Set {grant.env_app_id} and {grant.env_auth_var} to submit.\n"
             "   Use --dry-run to preview the payload."
         )
         sys.exit(1)
 
     app_id = os.environ.get(grant.env_app_id, "")
-    api_key = os.environ.get(grant.env_api_key, "")
+    api_key = os.environ.get(grant.env_auth_var, "")
 
     if requests is None:
         print("❌  requests library not installed.  Run: pip install requests")

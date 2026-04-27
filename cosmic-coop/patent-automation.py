@@ -50,7 +50,7 @@ class PatentConfig:
     claims_count:  int        # number of independent claims
     api_base:      str
     env_app_id:    str        # env var holding the application number
-    env_api_key:   str        # env var holding the USPTO API key / JWT
+    env_auth_var:   str        # env var holding the USPTO API key / JWT
     inventors:     list[str] = field(default_factory=list)
     ipc_classes:   list[str] = field(default_factory=list)  # IPC classification codes
     status:        str = "in_preparation"  # in_preparation | filed | published | granted | abandoned
@@ -66,7 +66,7 @@ PATENTS: dict[str, PatentConfig] = {
         claims_count=5,
         api_base=os.environ.get("USPTO_API", "https://api.uspto.gov/patent/applications/v1"),
         env_app_id="USPTO_IOT_APP_NUM",
-        env_api_key="USPTO_API_KEY",
+        env_auth_var="USPTO_API_KEY",
         inventors=["Chais Hill"],
         ipc_classes=["A01G 31/02", "G01D 21/02", "H04W 4/38"],
         status="in_preparation",
@@ -80,7 +80,7 @@ PATENTS: dict[str, PatentConfig] = {
         claims_count=12,
         api_base=os.environ.get("USPTO_API", "https://api.uspto.gov/patent/applications/v1"),
         env_app_id="USPTO_DRONE_APP_NUM",
-        env_api_key="USPTO_API_KEY",
+        env_auth_var="USPTO_API_KEY",
         inventors=["Chais Hill"],
         ipc_classes=["G06Q 10/083", "B64C 39/02", "G05D 1/10"],
         status="in_preparation",
@@ -94,7 +94,7 @@ PATENTS: dict[str, PatentConfig] = {
         claims_count=10,
         api_base=os.environ.get("USPTO_API", "https://api.uspto.gov/patent/applications/v1"),
         env_app_id="USPTO_AR_APP_NUM",
-        env_api_key="USPTO_API_KEY",
+        env_auth_var="USPTO_API_KEY",
         inventors=["Chais Hill"],
         ipc_classes=["G02B 27/01", "A01D 91/04", "G06T 19/00"],
         status="in_preparation",
@@ -108,7 +108,7 @@ PATENTS: dict[str, PatentConfig] = {
         claims_count=1,
         api_base=os.environ.get("USPTO_API", "https://api.uspto.gov/patent/applications/v1"),
         env_app_id="USPTO_PLANT_APP_NUM",
-        env_api_key="USPTO_API_KEY",
+        env_auth_var="USPTO_API_KEY",
         inventors=["Chais Hill"],
         ipc_classes=["A01H 5/02"],
         status="in_preparation",
@@ -122,7 +122,7 @@ PATENTS: dict[str, PatentConfig] = {
         claims_count=15,
         api_base=os.environ.get("USPTO_API", "https://api.uspto.gov/patent/applications/v1"),
         env_app_id="USPTO_ZAIRE_APP_NUM",
-        env_api_key="USPTO_API_KEY",
+        env_auth_var="USPTO_API_KEY",
         inventors=["Chais Hill"],
         ipc_classes=["G06Q 20/06", "H04L 9/00", "A01G 31/00"],
         status="in_preparation",
@@ -184,7 +184,7 @@ def build_filing_payload(patent: PatentConfig, inventor: InventorProfile) -> dic
 # ---------------------------------------------------------------------------
 
 def _headers(patent: PatentConfig) -> dict:
-    api_key = os.environ.get(patent.env_api_key, "")
+    api_key = os.environ.get(patent.env_auth_var, "")
     return {
         "Authorization": f"Bearer {api_key}" if api_key else "Bearer <not-set>",
         "Content-Type":  "application/json",
@@ -221,10 +221,10 @@ def submit_filing(patent: PatentConfig, inventor: InventorProfile, dry_run: bool
         print(json.dumps(payload, indent=2))
         return {"dry_run": True, "payload_keys": list(payload.keys())}
 
-    if not os.environ.get(patent.env_app_id) or not os.environ.get(patent.env_api_key):
+    if not os.environ.get(patent.env_app_id) or not os.environ.get(patent.env_auth_var):
         print(
             f"⚠️  Required environment variables not set.\n"
-            f"   Set {patent.env_app_id} and {patent.env_api_key} to submit.\n"
+            f"   Set {patent.env_app_id} and {patent.env_auth_var} to submit.\n"
             "   Use --dry-run to preview the payload."
         )
         sys.exit(1)
