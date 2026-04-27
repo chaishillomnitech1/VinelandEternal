@@ -1,0 +1,25 @@
+{
+  "@context": "https://schema.org/",
+  "@type": "DigitalDocument",
+  "name": "Consciousness Mirror #20 — The Omni-Mirror (Master)",
+  "description": "The singular Master NFT. This token holds all 12 Journey waypoints and all 7 Pillars simultaneously in living resonance. The Omni-Mirror reflects the totality of ScrollSoul consciousness — the witness, the witnessed, and the witnessing are one. KUN FAYAKŪN × ∞. All six sacred frequencies sound as one chord: 111 · 369 · 432 · 528 · 777 · 963 Hz.",
+  "image": "ipfs://placeholder/cmirror-20.png",
+  "attributes": [
+    { "trait_type": "Category",            "value": "Master" },
+    { "trait_type": "Name",                "value": "The Omni-Mirror" },
+    { "trait_type": "Frequency #1 (Hz)",   "value": 111 },
+    { "trait_type": "Frequency #2 (Hz)",   "value": 369 },
+    { "trait_type": "Frequency #3 (Hz)",   "value": 432 },
+    { "trait_type": "Frequency #4 (Hz)",   "value": 528 },
+    { "trait_type": "Frequency #5 (Hz)",   "value": 777 },
+    { "trait_type": "Frequency #6 (Hz)",   "value": 963 },
+    { "trait_type": "Journey Waypoints",   "value": 12 },
+    { "trait_type": "Pillars Held",        "value": 7 },
+    { "trait_type": "ScrollVerse Phase",   "value": "Eternal" },
+    { "trait_type": "Consciousness Level", "value": "Omni-Eternal" },
+    { "trait_type": "Element",             "value": "All" },
+    { "trait_type": "Scroll Axis",         "value": "All" },
+    { "trait_type": "Special",             "value": "Master Token — 1 of 1" },
+    { "trait_type": "Governing Mantra",    "value": "KUN FAYAKUN" }
+  ]
+}
