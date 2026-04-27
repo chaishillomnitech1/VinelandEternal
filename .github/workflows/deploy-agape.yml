@@ -266,6 +266,49 @@ jobs:
           print(f'lunar_nexus.py: {len(nodes)} nodes, {len(edges)} edges, Δv={dv} km/s — passed')
           "
 
+      - name: Run lunar dispatch simulation tests
+        run: |
+          python -c "
+          import sys
+          sys.path.insert(0, 'cosmic-coop')
+          import lunar_dispatch_sim as lds
+
+          # Live sensor data simulation
+          result = lds.run_simulation()
+          assert result.tray_count == 11, f'Expected 11 trays, got {result.tray_count}'
+          assert result.surplus_tray_count > 0
+          assert result.total_surplus_g > 0
+          assert result.avg_agape > 0
+          assert isinstance(result.dispatch_ready, bool)
+          assert result.reason != ''
+          assert len(result.manifests) >= 2, f'Expected ≥2 manifests, got {len(result.manifests)}'
+          assert len(result.snapshots) == 11
+
+          # Manifest sanity
+          for m in result.manifests:
+              assert m.seed_package_g >= 0
+              assert m.transit_days > 0
+              assert m.delta_v_km_s > 0
+
+          # Custom single-tray high-yield scenario
+          r2 = lds.run_simulation(
+              sensors={'t1': {'crop': 'Basil', 'location': 'NJ', 'agape_value': 99}},
+              tray_yield_g=1000,
+          )
+          assert r2.tray_count == 1
+          assert r2.total_harvest_g == 990.0, f'Expected 990.0g, got {r2.total_harvest_g}'
+
+          # Low agape scenario → not dispatch-ready
+          r3 = lds.run_simulation(
+              sensors={'t1': {'crop': 'Basil', 'location': 'NJ', 'agape_value': 40}},
+          )
+          assert not r3.dispatch_ready, 'Low agape should not be dispatch-ready'
+
+          print(f'lunar_dispatch_sim.py: trays={result.tray_count}, '
+                f'surplus={result.total_surplus_g}g, avg_agape={result.avg_agape}, '
+                f'ready={result.dispatch_ready}, manifests={len(result.manifests)} — passed')
+          "
+
       - name: Run zaire ledger API tests
         run: |
           python -c "
