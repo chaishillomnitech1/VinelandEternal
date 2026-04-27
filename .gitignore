@@ -39,3 +39,16 @@ Thumbs.db
 /tmp/
 *.log
 zaire-ledger.db
+
+# Hardhat
+artifacts/
+cache/
+typechain-types/
+
+# Secrets — never commit these
+.env
+arweave-wallet.json
+
+# Deployment outputs (keep .gitkeep, ignore generated JSONs)
+deployments/*.json
+

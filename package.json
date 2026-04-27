@@ -1,0 +1,25 @@
+{
+  "name": "vineland-eternal",
+  "version": "1.0.0",
+  "description": "VinelandEternal ScrollVerse smart contracts, deploy scripts, and dApp",
+  "private": true,
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "node": "hardhat node",
+    "deploy:mumbai": "hardhat run scripts/deploy.js --network mumbai",
+    "deploy:sepolia": "hardhat run scripts/deploy.js --network sepolia",
+    "deploy:local": "hardhat run scripts/deploy.js --network localhost",
+    "set-uri:mumbai": "hardhat run scripts/set-base-uri.js --network mumbai",
+    "upload-metadata": "node scripts/upload-arweave.js",
+    "verify:mumbai": "hardhat verify --network mumbai"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "hardhat": "^2.28.6"
+  },
+  "dependencies": {
+    "arweave": "^1.15.0",
+    "dotenv": "^16.4.5"
+  }
+}

@@ -18,6 +18,10 @@ pragma solidity ^0.8.24;
  *
  * The token URIs are set at deployment and can only be updated by the owner.
  * Base URI defaults to the repository path; override via setBaseURI().
+ *
+ * Public minting: tokens are sold sequentially starting from id 1.
+ * The owner sets mintPrice and can pause/resume minting.
+ * Proceeds are withdrawable by the owner via withdraw().
  */
 contract ConsciousnessMirrorNFT {
 
@@ -51,6 +55,19 @@ contract ConsciousnessMirrorNFT {
     string private _baseURI;
 
     // -----------------------------------------------------------------------
+    // Public mint state
+    // -----------------------------------------------------------------------
+
+    /// @notice Price in wei for one token during public mint.
+    uint256 public mintPrice;
+
+    /// @notice Next token ID to be sold in the public mint queue (1-based).
+    uint256 public nextMintId;
+
+    /// @notice When true the public mint function is open; owner can flip this.
+    bool public mintActive;
+
+    // -----------------------------------------------------------------------
     // Ownership
     // -----------------------------------------------------------------------
 
@@ -64,6 +81,9 @@ contract ConsciousnessMirrorNFT {
     event Approval(address indexed owner_, address indexed approved, uint256 indexed tokenId);
     event ApprovalForAll(address indexed owner_, address indexed operator, bool approved);
     event BaseURIUpdated(string previousURI, string newURI);
+    event MintPriceUpdated(uint256 previousPrice, uint256 newPrice);
+    event MintActiveUpdated(bool active);
+    event Withdrawn(address indexed to, uint256 amount);
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
     // -----------------------------------------------------------------------
@@ -71,19 +91,21 @@ contract ConsciousnessMirrorNFT {
     // -----------------------------------------------------------------------
 
     /**
-     * @param baseURI_  Base URI for token metadata, e.g.
-     *                  "ipfs://QmXXX/" or a local path for development.
-     *                  Token URI = baseURI_ + tokenId + ".json"
-     * @param recipient Address that receives all 20 minted tokens.
+     * @param baseURI_   Base URI for token metadata, e.g.
+     *                   "ipfs://QmXXX/" or "ar://TXID/" for Arweave.
+     *                   Token URI = baseURI_ + tokenId + ".json"
+     * @param mintPrice_ Initial public mint price in wei (e.g. 0.05 ether).
+     *                   Set to 0 to make minting free.
+     *
+     * No tokens are pre-minted at deploy — they are minted on demand via
+     * publicMint() or reserved via ownerMint() by the owner.
      */
-    constructor(string memory baseURI_, address recipient) {
-        require(recipient != address(0), "ConsciousnessMirrorNFT: zero recipient");
-        owner    = msg.sender;
-        _baseURI = baseURI_;
-
-        for (uint256 id = 1; id <= TOTAL_SUPPLY; id++) {
-            _mint(recipient, id);
-        }
+    constructor(string memory baseURI_, uint256 mintPrice_) {
+        owner      = msg.sender;
+        _baseURI   = baseURI_;
+        mintPrice  = mintPrice_;
+        nextMintId = 1;
+        mintActive = false; // owner enables when ready
     }
 
     // -----------------------------------------------------------------------
@@ -187,8 +209,69 @@ contract ConsciousnessMirrorNFT {
     }
 
     // -----------------------------------------------------------------------
+    // Public mint
+    // -----------------------------------------------------------------------
+
+    /**
+     * @notice Mint the next available token.
+     *         Caller must send exactly `mintPrice` wei (or more — excess
+     *         is NOT refunded; use the exact amount).
+     *         Reverts when collection is sold out or mint is paused.
+     */
+    function publicMint() external payable {
+        require(mintActive,               "ConsciousnessMirrorNFT: mint not active");
+        require(nextMintId <= TOTAL_SUPPLY, "ConsciousnessMirrorNFT: sold out");
+        require(msg.value >= mintPrice,   "ConsciousnessMirrorNFT: insufficient payment");
+
+        uint256 tokenId = nextMintId;
+        unchecked { nextMintId++; }
+        _mint(msg.sender, tokenId);
+    }
+
+    /**
+     * @notice Mint `quantity` tokens directly to `to` without payment.
+     *         Only the owner can call this — used for giveaways / reserves.
+     */
+    function ownerMint(address to, uint256 quantity) external onlyOwner {
+        require(to != address(0), "ConsciousnessMirrorNFT: zero address");
+        uint256 start = nextMintId;
+        require(start + quantity - 1 <= TOTAL_SUPPLY, "ConsciousnessMirrorNFT: exceeds supply");
+        for (uint256 i = 0; i < quantity; i++) {
+            _mint(to, start + i);
+        }
+        unchecked { nextMintId = start + quantity; }
+    }
+
+    // -----------------------------------------------------------------------
     // Admin
     // -----------------------------------------------------------------------
+
+    /**
+     * @notice Enable or disable public minting.
+     */
+    function setMintActive(bool active) external onlyOwner {
+        mintActive = active;
+        emit MintActiveUpdated(active);
+    }
+
+    /**
+     * @notice Update the public mint price (in wei).
+     */
+    function setMintPrice(uint256 newPrice) external onlyOwner {
+        emit MintPriceUpdated(mintPrice, newPrice);
+        mintPrice = newPrice;
+    }
+
+    /**
+     * @notice Withdraw all ETH collected from minting to the owner.
+     */
+    function withdraw() external onlyOwner {
+        uint256 amount = address(this).balance;
+        require(amount > 0, "ConsciousnessMirrorNFT: nothing to withdraw");
+        emit Withdrawn(owner, amount);
+        (bool ok, ) = owner.call{value: amount}("");
+        require(ok, "ConsciousnessMirrorNFT: withdraw failed");
+    }
 
     /**
      * @notice Update the base URI for all token metadata.

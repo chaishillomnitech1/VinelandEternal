@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VinelandEternal — ScrollVerse dApp</title>
+  <style>
+    /* ── Reset & base ───────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold:   #ffd700;
+      --glow:   #ffb300;
+      --dark:   #0a0a12;
+      --card:   #12121e;
+      --border: #2a2a40;
+      --green:  #69f0ae;
+      --red:    #ef5350;
+      --amber:  #ffb74d;
+      --text:   #e0e0ff;
+      --muted:  #8080a0;
+      --radius: 12px;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--dark);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    /* ── Layout ─────────────────────────────────────────────────────────── */
+    .app {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 1.5rem 1rem 4rem;
+    }
+
+    /* ── Header ─────────────────────────────────────────────────────────── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .logo-icon { font-size: 1.8rem; }
+
+    .logo h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--gold);
+      letter-spacing: 0.04em;
+    }
+
+    .logo p {
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    #connect-btn {
+      padding: 0.55rem 1.2rem;
+      border-radius: 999px;
+      border: 1.5px solid var(--gold);
+      background: transparent;
+      color: var(--gold);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+      white-space: nowrap;
+    }
+
+    #connect-btn:hover,
+    #connect-btn.connected {
+      background: var(--gold);
+      color: #000;
+    }
+
+    /* ── Tabs ────────────────────────────────────────────────────────────── */
+    .tabs {
+      display: flex;
+      gap: 0.25rem;
+      margin-bottom: 2rem;
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 0.25rem;
+      border: 1px solid var(--border);
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 0.55rem;
+      border: none;
+      border-radius: calc(var(--radius) - 4px);
+      background: transparent;
+      color: var(--muted);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .tab-btn.active {
+      background: var(--border);
+      color: var(--gold);
+    }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* ── Cards ───────────────────────────────────────────────────────────── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .card h2 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--gold);
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    /* ── Stat grid ───────────────────────────────────────────────────────── */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .stat {
+      background: #1a1a2e;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+    }
+
+    .stat-label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .stat-value { font-size: 1.15rem; font-weight: 700; color: var(--text); margin-top: 0.2rem; }
+
+    /* ── Form controls ───────────────────────────────────────────────────── */
+    .field { margin-bottom: 1rem; }
+    .field label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 0.35rem; }
+
+    input[type="text"],
+    input[type="number"] {
+      width: 100%;
+      padding: 0.6rem 0.85rem;
+      background: #1a1a2e;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 0.9rem;
+    }
+
+    input:focus { outline: none; border-color: var(--gold); }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.65rem 1.4rem;
+      border: none;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .btn-primary  { background: var(--gold);  color: #000; }
+    .btn-outline  { background: transparent; border: 1.5px solid var(--gold); color: var(--gold); }
+    .btn-green    { background: var(--green); color: #000; }
+    .btn-danger   { background: var(--red);   color: #fff; }
+
+    /* ── Status messages ─────────────────────────────────────────────────── */
+    .status {
+      padding: 0.6rem 1rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      margin-top: 0.75rem;
+      display: none;
+    }
+
+    .status.show  { display: block; }
+    .status.ok    { background: #0d2e1a; border: 1px solid var(--green); color: var(--green); }
+    .status.err   { background: #2e0d0d; border: 1px solid var(--red);   color: var(--red);   }
+    .status.info  { background: #1a1a2e; border: 1px solid var(--border); color: var(--muted); }
+    .status.warn  { background: #2e200d; border: 1px solid var(--amber); color: var(--amber); }
+
+    /* ── Token grid ──────────────────────────────────────────────────────── */
+    .token-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: 0.6rem;
+      margin-top: 0.75rem;
+    }
+
+    .token-card {
+      background: #1a1a2e;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.6rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s;
+      user-select: none;
+    }
+
+    .token-card:hover   { border-color: var(--gold); }
+    .token-card.selected{ border-color: var(--green); background: #0d2018; }
+    .token-card.staked  { border-color: #5050a0; opacity: 0.6; cursor: default; }
+
+    .token-card .tid    { font-size: 1.1rem; font-weight: 800; color: var(--gold); }
+    .token-card .cat    { font-size: 0.68rem; color: var(--muted); margin-top: 0.15rem; }
+    .token-card .badge  { font-size: 0.65rem; margin-top: 0.25rem; padding: 0.15rem 0.4rem;
+                          border-radius: 4px; display: inline-block; }
+    .badge-journey { background: #1a2e1a; color: var(--green); }
+    .badge-pillar  { background: #1a1a2e; color: #80a0ff; }
+    .badge-master  { background: #2e2000; color: var(--gold); }
+
+    /* ── Staked positions list ───────────────────────────────────────────── */
+    .stake-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .stake-row:last-child { border-bottom: none; }
+    .stake-row .tid { font-weight: 800; color: var(--gold); min-width: 2rem; }
+    .stake-row .pending { flex: 1; font-size: 0.85rem; color: var(--green); }
+    .stake-row .actions { display: flex; gap: 0.5rem; }
+
+    /* ── Wallet info bar ─────────────────────────────────────────────────── */
+    .wallet-bar {
+      background: #12121e;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.55rem 1rem;
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+      display: none;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .wallet-bar.show { display: flex; }
+    .wallet-bar span { color: var(--text); font-weight: 600; }
+    .wallet-bar .addr { font-family: monospace; }
+
+    /* ── Loader ──────────────────────────────────────────────────────────── */
+    .spinner {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid transparent;
+      border-top-color: currentColor;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Responsive ──────────────────────────────────────────────────────── */
+    @media (max-width: 500px) {
+      .stat-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ── Header ──────────────────────────────────────────────────────────── -->
+  <header>
+    <div class="logo">
+      <span class="logo-icon">🪞</span>
+      <div>
+        <h1>VinelandEternal</h1>
+        <p>ScrollVerse · Consciousness Mirror dApp</p>
+      </div>
+    </div>
+    <button id="connect-btn" onclick="connectWallet()">Connect Wallet</button>
+  </header>
+
+  <!-- ── Wallet info bar ─────────────────────────────────────────────────── -->
+  <div class="wallet-bar" id="wallet-bar">
+    <div>Wallet: <span class="addr" id="wb-addr">—</span></div>
+    <div>Network: <span id="wb-network">—</span></div>
+    <div>MATIC: <span id="wb-matic">—</span></div>
+    <div>$MIRROR: <span id="wb-mirror">—</span></div>
+    <div>CMIRROR NFTs: <span id="wb-nfts">—</span></div>
+  </div>
+
+  <!-- ── Tabs ────────────────────────────────────────────────────────────── -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('mint')">🪙 Mint NFT</button>
+    <button class="tab-btn"       onclick="showTab('stake')">⚡ Stake</button>
+    <button class="tab-btn"       onclick="showTab('claim')">💎 Claim $MIRROR</button>
+    <button class="tab-btn"       onclick="showTab('info')">📜 Collection</button>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- MINT PANEL                                                            -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="panel active" id="panel-mint">
+
+    <div class="stat-grid" id="mint-stats">
+      <div class="stat">
+        <div class="stat-label">Minted / Total</div>
+        <div class="stat-value" id="stat-minted">— / 20</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Mint Price</div>
+        <div class="stat-value" id="stat-price">— MATIC</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Status</div>
+        <div class="stat-value" id="stat-status">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Next Token</div>
+        <div class="stat-value" id="stat-next">—</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🪙 Public Mint</h2>
+      <p style="font-size:.85rem;color:var(--muted);margin-bottom:1rem;">
+        Mint the next available Consciousness Mirror NFT.
+        Tokens are sold sequentially (1–12 Journey · 13–19 Pillar · 20 Master).
+      </p>
+      <button class="btn btn-primary" id="mint-btn" onclick="mintNFT()" disabled>
+        Mint NFT
+      </button>
+      <div class="status" id="mint-status"></div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- STAKE PANEL                                                           -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="panel" id="panel-stake">
+
+    <div class="card">
+      <h2>⚡ Stake a Consciousness Mirror NFT</h2>
+      <p style="font-size:.85rem;color:var(--muted);margin-bottom:1rem;">
+        Select one of your un-staked tokens below, then click <strong>Stake</strong>.
+        The Master NFT (#20) earns 3× the base reward rate.
+        2.5% of every reward claim flows to the Zakat pool automatically.
+      </p>
+      <div class="token-grid" id="stake-token-grid">
+        <p style="color:var(--muted);font-size:.85rem;">Connect wallet to view your tokens.</p>
+      </div>
+      <div style="margin-top:1rem;display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;">
+        <button class="btn btn-primary" id="stake-btn" onclick="stakeSelected()" disabled>
+          Stake Selected
+        </button>
+        <span id="stake-selected-label" style="font-size:.82rem;color:var(--muted);">No token selected</span>
+      </div>
+      <div class="status" id="stake-status"></div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- CLAIM / UNSTAKE PANEL                                                 -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="panel" id="panel-claim">
+
+    <div class="card">
+      <h2>💎 Your Staked Positions</h2>
+      <p style="font-size:.85rem;color:var(--muted);margin-bottom:1rem;">
+        Claim pending $MIRROR without unstaking, or unstake to reclaim your NFT and rewards at once.
+      </p>
+      <div id="stake-positions">
+        <p style="color:var(--muted);font-size:.85rem;">Connect wallet to view staked positions.</p>
+      </div>
+      <div class="status" id="claim-status"></div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- INFO PANEL                                                            -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="panel" id="panel-info">
+
+    <div class="card">
+      <h2>📜 Collection Overview</h2>
+      <p style="font-size:.85rem;color:var(--muted);margin-bottom:1.25rem;">
+        20 unique Consciousness Mirror NFTs across 3 categories.
+        Each encodes a Solfeggio frequency and ScrollVerse phase.
+      </p>
+      <div class="token-grid" id="info-token-grid"></div>
+    </div>
+
+    <div class="card">
+      <h2>⚙ Contract Addresses</h2>
+      <div id="contract-addresses" style="font-family:monospace;font-size:.78rem;line-height:2;color:var(--muted);"></div>
+    </div>
+
+  </div>
+
+</div><!-- /.app -->
+
+<!-- ── ethers.js v6 via CDN ────────────────────────────────────────────── -->
+<!--
+  PRODUCTION NOTE: Replace this CDN tag with a locally-hosted copy of ethers
+  or add an integrity="sha384-…" Subresource Integrity hash for security.
+  To get the SRI hash: https://www.srihash.org/ using the URL below.
+-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer"></script>
+<script>
+// Verify ethers loaded; halt with a clear message if CDN was blocked.
+if (typeof ethers === "undefined") {
+  document.body.innerHTML =
+    '<div style="color:#ef5350;padding:2rem;font-family:monospace">' +
+    '❌ ethers.js failed to load. Check your network connection or ' +
+    'self-host ethers.umd.min.js alongside this file.</div>';
+  throw new Error("ethers.js not available");
+}
+</script>
+
+<script>
+"use strict";
+
+// ── Contract configuration ───────────────────────────────────────────────
+// After running deploy.js, replace these addresses with deployments/mumbai.json values.
+const CONFIG = {
+  chainId:   80001,
+  chainName: "Mumbai (Polygon Testnet)",
+  rpcUrl:    "https://rpc-mumbai.maticvigil.com",
+
+  addresses: {
+    MirrorToken:            "0x0000000000000000000000000000000000000000",
+    ConsciousnessMirrorNFT: "0x0000000000000000000000000000000000000000",
+    MirrorStaking:          "0x0000000000000000000000000000000000000000",
+  },
+};
+
+// Attempt to auto-load deployed addresses from window.DEPLOYED_ADDRESSES
+// (set this in a <script> tag after deploy, or from your deployment JSON)
+if (window.DEPLOYED_ADDRESSES) Object.assign(CONFIG.addresses, window.DEPLOYED_ADDRESSES);
+
+// ── Minimal ABIs ─────────────────────────────────────────────────────────
+
+const MIRROR_ABI = [
+  "function balanceOf(address) view returns (uint256)",
+  "function decimals() view returns (uint8)",
+  "function symbol() view returns (string)",
+  "function approve(address spender, uint256 amount) returns (bool)",
+  "function claimDividend()",
+  "function dividendOf(address) view returns (uint256)",
+];
+
+const NFT_ABI = [
+  "function balanceOf(address) view returns (uint256)",
+  "function ownerOf(uint256) view returns (address)",
+  "function tokenURI(uint256) view returns (string)",
+  "function categoryOf(uint256) pure returns (string)",
+  "function mintPrice() view returns (uint256)",
+  "function nextMintId() view returns (uint256)",
+  "function mintActive() view returns (bool)",
+  "function publicMint() payable",
+  "function approve(address to, uint256 tokenId)",
+  "function isApprovedForAll(address owner, address operator) view returns (bool)",
+  "function setApprovalForAll(address operator, bool approved)",
+  "event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)",
+];
+
+const STAKING_ABI = [
+  "function stake(uint256 tokenId)",
+  "function unstake(uint256 tokenId)",
+  "function claimRewards(uint256 tokenId)",
+  "function pendingRewards(uint256 tokenId) view returns (uint256)",
+  "function stakedTokensOf(address staker) view returns (uint256[])",
+  "function stakes(uint256) view returns (address staker, uint256 stakedAt, uint256 rewardDebt)",
+  "function rewardRate() view returns (uint256)",
+];
+
+// ── State ────────────────────────────────────────────────────────────────
+
+let provider, signer, userAddress;
+let mirrorContract, nftContract, stakingContract;
+let selectedStakeToken = null;
+
+// ── Utilities ────────────────────────────────────────────────────────────
+
+function setStatus(id, msg, type /* ok|err|info|warn */) {
+  const el = document.getElementById(id);
+  el.className = `status show ${type}`;
+  el.innerHTML = msg;
+}
+
+function clearStatus(id) {
+  const el = document.getElementById(id);
+  el.className = "status";
+  el.textContent = "";
+}
+
+function shortAddr(addr) {
+  return addr ? addr.slice(0, 6) + "…" + addr.slice(-4) : "—";
+}
+
+function categoryBadge(cat) {
+  const cls = cat === "Journey" ? "badge-journey" : cat === "Pillar" ? "badge-pillar" : "badge-master";
+  return `<span class="badge ${cls}">${cat}</span>`;
+}
+
+// ── Tab switching ─────────────────────────────────────────────────────────
+
+function showTab(name) {
+  document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+  document.getElementById(`panel-${name}`).classList.add("active");
+  event.currentTarget.classList.add("active");
+
+  if (userAddress) {
+    if (name === "mint")  loadMintStats();
+    if (name === "stake") loadUserTokens();
+    if (name === "claim") loadStakedPositions();
+  }
+}
+
+// ── Wallet connection ─────────────────────────────────────────────────────
+
+async function connectWallet() {
+  if (!window.ethereum) {
+    alert("MetaMask (or any EVM wallet) is required. Install it from metamask.io.");
+    return;
+  }
+
+  try {
+    await window.ethereum.request({ method: "eth_requestAccounts" });
+    provider = new ethers.BrowserProvider(window.ethereum);
+    signer   = await provider.getSigner();
+    userAddress = await signer.getAddress();
+
+    // Switch to / add Mumbai if needed
+    try {
+      await window.ethereum.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: "0x" + CONFIG.chainId.toString(16) }],
+      });
+    } catch (switchErr) {
+      if (switchErr.code === 4902) {
+        await window.ethereum.request({
+          method: "wallet_addEthereumChain",
+          params: [{
+            chainId:         "0x" + CONFIG.chainId.toString(16),
+            chainName:       CONFIG.chainName,
+            rpcUrls:         [CONFIG.rpcUrl],
+            nativeCurrency:  { name: "MATIC", symbol: "MATIC", decimals: 18 },
+            blockExplorerUrls: ["https://mumbai.polygonscan.com"],
+          }],
+        });
+      }
+    }
+
+    // Re-acquire provider/signer after network switch
+    provider = new ethers.BrowserProvider(window.ethereum);
+    signer   = await provider.getSigner();
+    userAddress = await signer.getAddress();
+
+    mirrorContract  = new ethers.Contract(CONFIG.addresses.MirrorToken,            MIRROR_ABI,  signer);
+    nftContract     = new ethers.Contract(CONFIG.addresses.ConsciousnessMirrorNFT, NFT_ABI,     signer);
+    stakingContract = new ethers.Contract(CONFIG.addresses.MirrorStaking,          STAKING_ABI, signer);
+
+    // Update UI
+    const btn = document.getElementById("connect-btn");
+    btn.textContent = shortAddr(userAddress);
+    btn.classList.add("connected");
+
+    document.getElementById("wallet-bar").classList.add("show");
+    document.getElementById("wb-addr").textContent = shortAddr(userAddress);
+
+    const network = await provider.getNetwork();
+    document.getElementById("wb-network").textContent = network.name || `Chain ${network.chainId}`;
+
+    await refreshWalletBar();
+    await loadMintStats();
+    await loadUserTokens();
+    buildInfoGrid();
+
+    document.getElementById("mint-btn").disabled = false;
+
+    // Listen for account/chain changes
+    window.ethereum.on("accountsChanged", () => location.reload());
+    window.ethereum.on("chainChanged",    () => location.reload());
+
+  } catch (err) {
+    console.error(err);
+    alert("Wallet connection failed: " + err.message);
+  }
+}
+
+async function refreshWalletBar() {
+  if (!userAddress) return;
+  try {
+    const maticBal = await provider.getBalance(userAddress);
+    document.getElementById("wb-matic").textContent =
+      parseFloat(ethers.formatEther(maticBal)).toFixed(4) + " MATIC";
+
+    const mirrorBal = await mirrorContract.balanceOf(userAddress);
+    document.getElementById("wb-mirror").textContent =
+      parseFloat(ethers.formatEther(mirrorBal)).toFixed(2) + " MIRROR";
+
+    const nftBal = await nftContract.balanceOf(userAddress);
+    document.getElementById("wb-nfts").textContent = nftBal.toString();
+  } catch { /* contract not yet deployed — ignore */ }
+}
+
+// ── Mint ─────────────────────────────────────────────────────────────────
+
+async function loadMintStats() {
+  try {
+    const [price, nextId, active] = await Promise.all([
+      nftContract.mintPrice(),
+      nftContract.nextMintId(),
+      nftContract.mintActive(),
+    ]);
+
+    const minted = Number(nextId) - 1;
+    document.getElementById("stat-minted").textContent = `${minted} / 20`;
+    document.getElementById("stat-price").textContent  =
+      parseFloat(ethers.formatEther(price)).toFixed(2) + " MATIC";
+    document.getElementById("stat-status").textContent = active ? "🟢 Open" : "🔴 Paused";
+    document.getElementById("stat-status").style.color = active ? "var(--green)" : "var(--red)";
+    document.getElementById("stat-next").textContent   =
+      Number(nextId) <= 20 ? `#${nextId}` : "Sold out";
+
+    const mintBtn = document.getElementById("mint-btn");
+    mintBtn.disabled = !active || Number(nextId) > 20;
+  } catch {
+    document.getElementById("stat-status").textContent = "(not deployed)";
+  }
+}
+
+async function mintNFT() {
+  const btn = document.getElementById("mint-btn");
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Minting…';
+  clearStatus("mint-status");
+
+  try {
+    const price = await nftContract.mintPrice();
+    const tx = await nftContract.publicMint({ value: price });
+    setStatus("mint-status", `<span class="spinner"></span> Transaction sent: ${tx.hash}`, "info");
+    const receipt = await tx.wait();
+
+    // Extract tokenId from Transfer event
+    const iface = new ethers.Interface(NFT_ABI);
+    let tokenId = "?";
+    for (const log of receipt.logs) {
+      try {
+        const parsed = iface.parseLog(log);
+        if (parsed.name === "Transfer" && parsed.args[0] === ethers.ZeroAddress) {
+          tokenId = parsed.args[2].toString();
+        }
+      } catch { /* skip */ }
+    }
+
+    setStatus("mint-status",
+      `✅ Minted Token #${tokenId}! TX: <a href="https://mumbai.polygonscan.com/tx/${tx.hash}"
+       target="_blank" style="color:var(--gold)">${tx.hash.slice(0,14)}…</a>`, "ok");
+
+    await loadMintStats();
+    await loadUserTokens();
+    await refreshWalletBar();
+
+  } catch (err) {
+    setStatus("mint-status", `❌ ${err.reason || err.message}`, "err");
+  } finally {
+    btn.innerHTML = "Mint NFT";
+    btn.disabled = false;
+  }
+}
+
+// ── Token ownership helpers ───────────────────────────────────────────────
+
+async function getUserTokenIds() {
+  // Scan all 20 token IDs for ownership
+  const owned = [];
+  const checks = [];
+  for (let id = 1; id <= 20; id++) {
+    checks.push(
+      nftContract.ownerOf(id)
+        .then(owner => { if (owner.toLowerCase() === userAddress.toLowerCase()) owned.push(id); })
+        .catch(() => {}) // token not minted yet
+    );
+  }
+  await Promise.all(checks);
+  owned.sort((a, b) => a - b);
+  return owned;
+}
+
+async function getStakedTokenIds() {
+  try {
+    const ids = await stakingContract.stakedTokensOf(userAddress);
+    return ids.map(id => Number(id));
+  } catch { return []; }
+}
+
+// ── Stake panel ───────────────────────────────────────────────────────────
+
+async function loadUserTokens() {
+  const grid = document.getElementById("stake-token-grid");
+  grid.innerHTML = '<span style="color:var(--muted);font-size:.82rem">Loading…</span>';
+  selectedStakeToken = null;
+  document.getElementById("stake-btn").disabled = true;
+  document.getElementById("stake-selected-label").textContent = "No token selected";
+
+  try {
+    const [owned, staked] = await Promise.all([getUserTokenIds(), getStakedTokenIds()]);
+
+    if (owned.length === 0 && staked.length === 0) {
+      grid.innerHTML = '<p style="color:var(--muted);font-size:.85rem">You don\'t own any Consciousness Mirror NFTs yet. Mint one first.</p>';
+      return;
+    }
+
+    grid.innerHTML = "";
+    const all = [...new Set([...owned, ...staked])].sort((a, b) => a - b);
+
+    for (const id of all) {
+      const cat = tokenCategory(id);
+      const isStaked = staked.includes(id);
+      const div = document.createElement("div");
+      div.className = `token-card${isStaked ? " staked" : ""}`;
+      div.dataset.tokenId = id;
+      div.innerHTML = `
+        <div class="tid">#${id}</div>
+        <div class="cat">${cat}</div>
+        ${categoryBadge(cat)}
+        ${isStaked ? '<div style="font-size:.65rem;color:#8080c0;margin-top:.2rem">Staked</div>' : ""}
+      `;
+      if (!isStaked) {
+        div.addEventListener("click", () => selectStakeToken(id, div));
+      }
+      grid.appendChild(div);
+    }
+  } catch (err) {
+    grid.innerHTML = `<p style="color:var(--red);font-size:.82rem">${err.message}</p>`;
+  }
+}
+
+function selectStakeToken(id, el) {
+  document.querySelectorAll(".token-card.selected").forEach(c => c.classList.remove("selected"));
+  el.classList.add("selected");
+  selectedStakeToken = id;
+  document.getElementById("stake-btn").disabled = false;
+  document.getElementById("stake-selected-label").textContent = `Selected: #${id} (${tokenCategory(id)})`;
+}
+
+async function stakeSelected() {
+  if (!selectedStakeToken) return;
+  const tokenId = selectedStakeToken;
+  const btn = document.getElementById("stake-btn");
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Staking…';
+  clearStatus("stake-status");
+
+  try {
+    // Approve staking contract if needed
+    const approved = await nftContract.isApprovedForAll(userAddress, CONFIG.addresses.MirrorStaking);
+    if (!approved) {
+      setStatus("stake-status", "Approving staking contract to transfer NFTs…", "info");
+      const approveTx = await nftContract.setApprovalForAll(CONFIG.addresses.MirrorStaking, true);
+      await approveTx.wait();
+    }
+
+    setStatus("stake-status",
+      `<span class="spinner"></span> Staking token #${tokenId}…`, "info");
+    const tx = await stakingContract.stake(tokenId);
+    await tx.wait();
+
+    setStatus("stake-status",
+      `✅ Token #${tokenId} is now staked! Earning $MIRROR. 
+       <a href="https://mumbai.polygonscan.com/tx/${tx.hash}" target="_blank"
+          style="color:var(--gold)">View TX</a>`, "ok");
+
+    selectedStakeToken = null;
+    await loadUserTokens();
+    await refreshWalletBar();
+
+  } catch (err) {
+    setStatus("stake-status", `❌ ${err.reason || err.message}`, "err");
+  } finally {
+    btn.innerHTML = "Stake Selected";
+    btn.disabled = false;
+  }
+}
+
+// ── Claim / Unstake panel ─────────────────────────────────────────────────
+
+async function loadStakedPositions() {
+  const container = document.getElementById("stake-positions");
+  container.innerHTML = '<p style="color:var(--muted);font-size:.85rem">Loading positions…</p>';
+  clearStatus("claim-status");
+
+  try {
+    const stakedIds = await getStakedTokenIds();
+
+    if (stakedIds.length === 0) {
+      container.innerHTML = '<p style="color:var(--muted);font-size:.85rem">No staked positions found. Stake an NFT first.</p>';
+      return;
+    }
+
+    // Fetch pending rewards for all staked tokens
+    const pendingArr = await Promise.all(
+      stakedIds.map(id =>
+        stakingContract.pendingRewards(id)
+          .then(v => ({ id, pending: v }))
+          .catch(() => ({ id, pending: 0n }))
+      )
+    );
+
+    container.innerHTML = "";
+    for (const { id, pending } of pendingArr) {
+      const row = document.createElement("div");
+      row.className = "stake-row";
+      const pendingFormatted = parseFloat(ethers.formatEther(pending)).toFixed(4);
+      row.innerHTML = `
+        <div class="tid">#${id}</div>
+        <div>
+          <div style="font-size:.75rem;color:var(--muted)">${tokenCategory(id)}</div>
+          <div class="pending">⚡ ${pendingFormatted} MIRROR pending</div>
+        </div>
+        <div class="actions">
+          <button class="btn btn-green" style="padding:.4rem .9rem;font-size:.78rem"
+            onclick="claimRewards(${id}, this)">Claim</button>
+          <button class="btn btn-outline" style="padding:.4rem .9rem;font-size:.78rem"
+            onclick="unstake(${id}, this)">Unstake</button>
+        </div>
+      `;
+      container.appendChild(row);
+    }
+
+  } catch (err) {
+    container.innerHTML = `<p style="color:var(--red);font-size:.82rem">${err.message}</p>`;
+  }
+}
+
+async function claimRewards(tokenId, btn) {
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>';
+  clearStatus("claim-status");
+  try {
+    const tx = await stakingContract.claimRewards(tokenId);
+    setStatus("claim-status", `<span class="spinner"></span> Claiming rewards for #${tokenId}…`, "info");
+    await tx.wait();
+    setStatus("claim-status",
+      `✅ $MIRROR claimed for token #${tokenId}! TX: 
+       <a href="https://mumbai.polygonscan.com/tx/${tx.hash}" target="_blank"
+          style="color:var(--gold)">${tx.hash.slice(0,14)}…</a>`, "ok");
+    await refreshWalletBar();
+    await loadStakedPositions();
+  } catch (err) {
+    setStatus("claim-status", `❌ ${err.reason || err.message}`, "err");
+    btn.disabled = false;
+    btn.innerHTML = "Claim";
+  }
+}
+
+async function unstake(tokenId, btn) {
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>';
+  clearStatus("claim-status");
+  try {
+    const tx = await stakingContract.unstake(tokenId);
+    setStatus("claim-status", `<span class="spinner"></span> Unstaking token #${tokenId}…`, "info");
+    await tx.wait();
+    setStatus("claim-status",
+      `✅ Token #${tokenId} unstaked and rewards claimed! TX: 
+       <a href="https://mumbai.polygonscan.com/tx/${tx.hash}" target="_blank"
+          style="color:var(--gold)">${tx.hash.slice(0,14)}…</a>`, "ok");
+    await refreshWalletBar();
+    await loadStakedPositions();
+    await loadUserTokens();
+  } catch (err) {
+    setStatus("claim-status", `❌ ${err.reason || err.message}`, "err");
+    btn.disabled = false;
+    btn.innerHTML = "Unstake";
+  }
+}
+
+// ── Info panel ────────────────────────────────────────────────────────────
+
+const TOKEN_NAMES = [
+  "", // 1-indexed
+  "Awakening Call", "Inner Vision", "Heart Opening", "Soul Remembering",
+  "Ancestral Healing", "Divine Clarity", "Sacred Surrender", "Higher Truth",
+  "Cosmic Alignment", "Unity Field", "Transcendence", "New Earth Birth",
+  "Root Pillar", "Sacral Pillar", "Solar Pillar", "Heart Pillar",
+  "Throat Pillar", "Third Eye Pillar", "Crown Pillar",
+  "Omni-Mirror Master",
+];
+
+function tokenCategory(id) {
+  if (id <= 12) return "Journey";
+  if (id <= 19) return "Pillar";
+  return "Master";
+}
+
+function buildInfoGrid() {
+  const grid = document.getElementById("info-token-grid");
+  grid.innerHTML = "";
+  for (let id = 1; id <= 20; id++) {
+    const cat = tokenCategory(id);
+    const div = document.createElement("div");
+    div.className = "token-card";
+    div.style.cursor = "default";
+    div.innerHTML = `
+      <div class="tid">#${id}</div>
+      <div class="cat" style="font-size:.62rem;min-height:1.8rem;line-height:1.2">${TOKEN_NAMES[id]}</div>
+      ${categoryBadge(cat)}
+    `;
+    grid.appendChild(div);
+  }
+
+  // Contract addresses
+  const addrDiv = document.getElementById("contract-addresses");
+  addrDiv.innerHTML = Object.entries(CONFIG.addresses).map(([name, addr]) =>
+    `<div><span style="color:var(--gold)">${name}:</span><br/>${addr}</div>`
+  ).join("<br/>");
+}
+
+// ── Init ─────────────────────────────────────────────────────────────────
+
+buildInfoGrid();
+</script>
+</body>
+</html>
