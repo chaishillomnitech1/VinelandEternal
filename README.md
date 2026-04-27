@@ -271,6 +271,45 @@ Open `frontend/financial-perfection.html` directly in any browser for a live sim
 
 ---
 
+## Live Deployment — Vercel 🚀
+
+The `vercel.json` in the root of this repo configures **automatic deployment to Vercel** on every push to `main`.
+
+### One-time Vercel setup
+
+1. Create a free Vercel account at <https://vercel.com> and import this repository.
+2. Generate a token at **Vercel → Account → Settings → Tokens**.
+3. Add three repository **Secrets** (Settings → Secrets and variables → Actions):
+
+   | Secret name | Where to find it |
+   |---|---|
+   | `VERCEL_TOKEN` | The token you just generated |
+   | `VERCEL_ORG_ID` | Vercel project settings → General → Team ID |
+   | `VERCEL_PROJECT_ID` | Vercel project settings → General → Project ID |
+
+4. Push to `main` — the **Deploy Agape** workflow runs lint → tests → `vercel --prod` automatically.
+
+### What gets deployed
+
+| Route | Source file |
+|---|---|
+| `/` | `frontend/index.html` — ScrollVerse dApp portal |
+| `/financial-perfection` | `frontend/financial-perfection.html` — Empire metrics dashboard |
+| `/mars-dao/*` | `frontend/mars-dao/` — Governance presentation & docs |
+
+### Local preview (no Vercel account needed)
+
+```bash
+npx serve frontend
+# → http://localhost:3000
+```
+
+### Regions
+
+Deployments are edge-cached in **3 regions**: `sfo1` (San Francisco), `iad1` (Washington DC), `cdg1` (Paris).
+
+---
+
 Every line of code, document, or metric deposited here must reflect two principles:
 
 1. **Agape Love**: Let your intent be to uplift every being touched by this repository.
