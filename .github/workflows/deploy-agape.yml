@@ -197,6 +197,75 @@ jobs:
           print('grant-automation.py: all grants valid — passed')
           "
 
+      - name: Run patent automation tests
+        run: |
+          python -c "
+          import sys, importlib.util
+          spec = importlib.util.spec_from_file_location('patent_automation', 'cosmic-coop/patent-automation.py')
+          m = importlib.util.module_from_spec(spec)
+          sys.modules['patent_automation'] = m
+          spec.loader.exec_module(m)
+          # All 5 patents produce valid finalized payloads
+          for key in m.PATENTS:
+              p = m.build_filing_payload(m.PATENTS[key], m.InventorProfile())
+              assert p['finalized'] is True, f'{key} payload not finalized'
+              assert 'inventor' in p, f'{key} missing inventor'
+              assert 'patent' in p, f'{key} missing patent block'
+              assert p['patent']['claims_count'] > 0, f'{key} claims_count invalid'
+          assert len(m.PATENTS) == 5
+          print(f'patent-automation.py: {len(m.PATENTS)} patents valid — passed')
+          "
+
+      - name: Run lunar nexus tests
+        run: |
+          python -c "
+          import sys, json
+          from pathlib import Path
+          sys.path.insert(0, 'cosmic-coop')
+          import lunar_nexus as ln
+
+          # JSON is valid and loadable
+          data = ln.load_nexus_data()
+          assert 'nodes' in data and 'edges' in data
+          assert data['schema_version'] == '1.0'
+
+          # Node counts
+          nodes = ln.load_lunar_nodes()
+          edges = ln.load_lunar_edges()
+          assert len(nodes) >= 6, f'Expected ≥6 nodes, got {len(nodes)}'
+          assert len(edges) >= 6, f'Expected ≥6 edges, got {len(edges)}'
+
+          # Body filtering
+          earth = ln.nodes_by_body('Earth')
+          moon  = ln.nodes_by_body('Moon')
+          assert len(earth) >= 3, f'Expected ≥3 Earth nodes, got {len(earth)}'
+          assert len(moon)  >= 2, f'Expected ≥2 Moon nodes, got {len(moon)}'
+
+          # Supply routes exist
+          sr = ln.supply_routes()
+          assert len(sr) >= 4, f'Expected ≥4 supply routes, got {len(sr)}'
+
+          # Delta-v calculation
+          dv = ln.total_delta_v('earth_vineland', 'lunar_base_south_pole')
+          assert dv > 0, f'Delta-v must be positive, got {dv}'
+          print(f'  earth_vineland → lunar_base_south_pole: {dv} km/s')
+
+          # Dispatch readiness — below threshold
+          ready, reason = ln.evaluate_dispatch_readiness(surplus_g=1000, avg_agape=80)
+          assert not ready, 'Should not be ready with low surplus+agape'
+
+          # Dispatch readiness — above threshold
+          ready, reason = ln.evaluate_dispatch_readiness(surplus_g=6000, avg_agape=93)
+          assert ready, f'Should be ready with high surplus+agape: {reason}'
+
+          # networkx graph builds without error
+          G = ln.build_lunar_graph()
+          assert G.number_of_nodes() == len(nodes)
+          assert G.number_of_edges() == len(edges)
+
+          print(f'lunar_nexus.py: {len(nodes)} nodes, {len(edges)} edges, Δv={dv} km/s — passed')
+          "
+
       - name: Run zaire ledger API tests
         run: |
           python -c "
