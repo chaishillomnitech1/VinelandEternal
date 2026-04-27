@@ -35,6 +35,8 @@ VinelandEternal/
 ├── cosmic-coop/              # USA/Global Hubs
 │   ├── heart-map.js          # Dynamic daily rhythm generator
 │   └── grant-automation.py   # SCBGP + parallel submissions
+├── presentations/            # Slide Decks
+│   └── mars-dao/             # Mars DAO Governance (22 slides, open index.html)
 └── .github/workflows/        # Auto-regen CI/CD
     └── deploy-agape.yml      # Auto-deploy on push
 ```
