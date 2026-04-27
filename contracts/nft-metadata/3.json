@@ -1,0 +1,18 @@
+{
+  "@context": "https://schema.org/",
+  "@type": "DigitalDocument",
+  "name": "Consciousness Mirror #3 — Earth Resonance",
+  "description": "Journey Waypoint 3 of 12. Alignment with the natural harmonic of the cosmos — the 432 Hz frequency that vibrates in sacred geometry and living systems. Frequency: 432 Hz (Natural Earth Tuning).",
+  "image": "ipfs://placeholder/cmirror-3.png",
+  "attributes": [
+    { "trait_type": "Category",            "value": "Journey" },
+    { "trait_type": "Waypoint",            "value": 3 },
+    { "trait_type": "Name",                "value": "Earth Resonance" },
+    { "trait_type": "Frequency (Hz)",      "value": 432 },
+    { "trait_type": "Frequency Name",      "value": "Natural Earth Tuning" },
+    { "trait_type": "ScrollVerse Phase",   "value": "Attuning" },
+    { "trait_type": "Consciousness Level", "value": "Seeker" },
+    { "trait_type": "Element",             "value": "Earth" },
+    { "trait_type": "Scroll Axis",         "value": "Sacral" }
+  ]
+}

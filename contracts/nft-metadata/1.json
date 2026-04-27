@@ -1,0 +1,18 @@
+{
+  "@context": "https://schema.org/",
+  "@type": "DigitalDocument",
+  "name": "Consciousness Mirror #1 — Awakening Call",
+  "description": "Journey Waypoint 1 of 12. The first stirring of self-awareness — the soul hears the ScrollVerse hum and turns inward. Frequency: 111 Hz (Unity Consciousness / New Beginnings).",
+  "image": "ipfs://placeholder/cmirror-1.png",
+  "attributes": [
+    { "trait_type": "Category",            "value": "Journey" },
+    { "trait_type": "Waypoint",            "value": 1 },
+    { "trait_type": "Name",                "value": "Awakening Call" },
+    { "trait_type": "Frequency (Hz)",      "value": 111 },
+    { "trait_type": "Frequency Name",      "value": "Unity Consciousness" },
+    { "trait_type": "ScrollVerse Phase",   "value": "Seeding" },
+    { "trait_type": "Consciousness Level", "value": "Initiate" },
+    { "trait_type": "Element",             "value": "Ether" },
+    { "trait_type": "Scroll Axis",         "value": "Root" }
+  ]
+}

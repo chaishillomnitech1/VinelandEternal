@@ -1,0 +1,18 @@
+{
+  "@context": "https://schema.org/",
+  "@type": "DigitalDocument",
+  "name": "Consciousness Mirror #6 — Third Eye Sight",
+  "description": "Journey Waypoint 6 of 12. Inner vision expands — the seeker perceives the ScrollVerse multidimensional lattice behind visible reality. Frequency: 777 Hz (Divine Completion).",
+  "image": "ipfs://placeholder/cmirror-6.png",
+  "attributes": [
+    { "trait_type": "Category",            "value": "Journey" },
+    { "trait_type": "Waypoint",            "value": 6 },
+    { "trait_type": "Name",                "value": "Third Eye Sight" },
+    { "trait_type": "Frequency (Hz)",      "value": 777 },
+    { "trait_type": "Frequency Name",      "value": "Divine Completion" },
+    { "trait_type": "ScrollVerse Phase",   "value": "Perceiving" },
+    { "trait_type": "Consciousness Level", "value": "Awakened" },
+    { "trait_type": "Element",             "value": "Light" },
+    { "trait_type": "Scroll Axis",         "value": "Third Eye" }
+  ]
+}

@@ -13,6 +13,43 @@
 "use strict";
 
 // ---------------------------------------------------------------------------
+// Sacred Frequency Constants (ScrollVerse AR overlay)
+// These solfeggio / harmonic frequencies are used to tune visual elements,
+// particle speeds, glow intensities, and colour hues across the visor layer.
+// ---------------------------------------------------------------------------
+
+/** 963 Hz — Crown / Pineal activation (Divine consciousness) */
+const FREQ_CROWN    = 963;
+
+/** 528 Hz — Heart coherence / DNA repair (Miracle tone) */
+const FREQ_HEART    = 528;
+
+/** 432 Hz — Natural Earth tuning (Cosmic harmonic) */
+const FREQ_EARTH    = 432;
+
+/** 369 Hz — Tesla vortex mathematics (Manifestation) */
+const FREQ_TESLA    = 369;
+
+/** 777 Hz — Divine completion / Spiritual perfection */
+const FREQ_DIVINE   = 777;
+
+/** 111 Hz — New beginnings / Unity consciousness */
+const FREQ_UNITY    = 111;
+
+/**
+ * All canonical ScrollVerse frequencies in ascending order.
+ * Use this array wherever a frequency sweep or selection is needed.
+ */
+const SCROLLVERSE_FREQUENCIES = [
+  FREQ_UNITY,   // 111
+  FREQ_TESLA,   // 369
+  FREQ_EARTH,   // 432
+  FREQ_HEART,   // 528
+  FREQ_DIVINE,  // 777
+  FREQ_CROWN,   // 963
+];
+
+// ---------------------------------------------------------------------------
 // Configuration
 // ---------------------------------------------------------------------------
 

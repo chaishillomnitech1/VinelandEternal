@@ -1,0 +1,18 @@
+{
+  "@context": "https://schema.org/",
+  "@type": "DigitalDocument",
+  "name": "Consciousness Mirror #2 — Harmonic Root",
+  "description": "Journey Waypoint 2 of 12. The seeker grounds in the Earth frequency, anchoring cosmic awareness in the physical vessel. Frequency: 369 Hz (Tesla Vortex / Manifestation).",
+  "image": "ipfs://placeholder/cmirror-2.png",
+  "attributes": [
+    { "trait_type": "Category",            "value": "Journey" },
+    { "trait_type": "Waypoint",            "value": 2 },
+    { "trait_type": "Name",                "value": "Harmonic Root" },
+    { "trait_type": "Frequency (Hz)",      "value": 369 },
+    { "trait_type": "Frequency Name",      "value": "Tesla Vortex" },
+    { "trait_type": "ScrollVerse Phase",   "value": "Rooting" },
+    { "trait_type": "Consciousness Level", "value": "Initiate" },
+    { "trait_type": "Element",             "value": "Earth" },
+    { "trait_type": "Scroll Axis",         "value": "Root" }
+  ]
+}
