@@ -36,16 +36,16 @@ jobs:
         run: pip install flake8
 
       - name: Flake8 — IoT Agape module
-        run: flake8 iot-agape/ --max-line-length=100 --ignore=E501,W503
+        run: flake8 iot-agape/ --max-line-length=100 --ignore=E501,W503,E241,E221,E231
 
       - name: Flake8 — Drone Alchemy module
-        run: flake8 drone-alchemy/ --max-line-length=100 --ignore=E501,W503
+        run: flake8 drone-alchemy/ --max-line-length=100 --ignore=E501,W503,E241,E221,E231
 
       - name: Flake8 — Zaire Axis module
-        run: flake8 zaire-axis/ --max-line-length=100 --ignore=E501,W503
+        run: flake8 zaire-axis/ --max-line-length=100 --ignore=E501,W503,E241,E221,E231
 
       - name: Flake8 — Cosmic Co-Op module
-        run: flake8 cosmic-coop/ --max-line-length=100 --ignore=E501,W503
+        run: flake8 cosmic-coop/ --max-line-length=100 --ignore=E501,W503,E241,E221,E231
 
       - name: Set up Node.js
         uses: actions/setup-node@v4

@@ -17,7 +17,7 @@ import json
 import math
 import os
 from dataclasses import dataclass, field
-from typing import Optional
+
 
 try:
     import pulp
@@ -70,7 +70,7 @@ class FlightPlan:
             "total_distance_km": round(self.total_distance_km, 2),
             "total_payload_g": round(self.total_payload_g, 2),
             "carbon_saved_g": round(self.carbon_saved_g, 2),
-            "route": [f"{l.origin} → {l.destination}" for l in self.legs],
+            "route": [f"{leg.origin} → {leg.destination}" for leg in self.legs],
         }
 
 

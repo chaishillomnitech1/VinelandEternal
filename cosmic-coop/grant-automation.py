@@ -22,7 +22,7 @@ import os
 import sys
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
-from typing import Optional
+
 
 try:
     import requests
@@ -250,9 +250,6 @@ def submit_application(grant: GrantConfig, profile: ApplicantProfile, dry_run: b
             "   Use --dry-run to preview the payload."
         )
         sys.exit(1)
-
-    app_id = os.environ.get(grant.env_app_id, "")
-    api_key = os.environ.get(grant.env_auth_var, "")
 
     if requests is None:
         print("❌  requests library not installed.  Run: pip install requests")
