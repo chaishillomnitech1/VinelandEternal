@@ -78,7 +78,7 @@ class FlightPlan:
 # Seed nodes — Tri-state Vineland grid
 # ---------------------------------------------------------------------------
 
-DEFAULT_NODES: list[Node] = [
+EAST_COAST_NODES: list[Node] = [
     Node("vineland",    "Vineland Sanctuary, NJ",      39.4862, -75.0255, surplus_g=0.0,   demand_g=0.0,   node_type="hub"),
     Node("camden",      "Camden Community Hub, NJ",    39.9259, -75.1196, surplus_g=0.0,   demand_g=300.0, node_type="demand"),
     Node("trenton",     "Trenton Food Bank, NJ",       40.2171, -74.7429, surplus_g=0.0,   demand_g=200.0, node_type="demand"),
@@ -86,6 +86,35 @@ DEFAULT_NODES: list[Node] = [
     Node("wilmington",  "Wilmington Node, DE",          39.7447, -75.5484, surplus_g=0.0,   demand_g=150.0, node_type="demand"),
     Node("atlantic",    "Atlantic City Hub, NJ",        39.3643, -74.4229, surplus_g=0.0,   demand_g=100.0, node_type="demand"),
 ]
+
+WEST_COAST_NODES: list[Node] = [
+    Node("seattle",       "Seattle Sanctuary, WA",           47.6062, -122.3321, surplus_g=0.0,  demand_g=0.0,   node_type="hub"),
+    Node("seattle-south", "South Seattle Community Hub, WA", 47.5437, -122.2929, surplus_g=0.0,  demand_g=250.0, node_type="demand"),
+    Node("tacoma",        "Tacoma Food Bank, WA",            47.2529, -122.4443, surplus_g=0.0,  demand_g=180.0, node_type="demand"),
+    Node("portland",      "Portland Sanctuary, OR",          45.5051, -122.6750, surplus_g=0.0,  demand_g=0.0,   node_type="hub"),
+    Node("portland-east", "East Portland Co-Op, OR",         45.5231, -122.5957, surplus_g=0.0,  demand_g=220.0, node_type="demand"),
+    Node("sf",            "San Francisco Sanctuary, CA",     37.7749, -122.4194, surplus_g=0.0,  demand_g=0.0,   node_type="hub"),
+    Node("oakland",       "Oakland Community Hub, CA",       37.8044, -122.2712, surplus_g=0.0,  demand_g=350.0, node_type="demand"),
+    Node("san-jose",      "San José Food Bank, CA",          37.3382, -121.8863, surplus_g=0.0,  demand_g=200.0, node_type="demand"),
+]
+
+# Backward-compatible alias (keeps existing callers working)
+DEFAULT_NODES: list[Node] = EAST_COAST_NODES
+
+# Registry of all supported deployment regions
+REGIONS: dict[str, list[Node]] = {
+    "east-coast": EAST_COAST_NODES,
+    "west-coast": WEST_COAST_NODES,
+}
+
+
+def get_nodes_for_region(region: str) -> list[Node]:
+    """Return a deep copy of the node list for *region* (case-insensitive)."""
+    import copy
+    key = region.lower().replace("_", "-")
+    if key not in REGIONS:
+        raise ValueError(f"Unknown region '{region}'. Valid options: {list(REGIONS.keys())}")
+    return copy.deepcopy(REGIONS[key])
 
 
 # ---------------------------------------------------------------------------
@@ -117,20 +146,22 @@ def carbon_saved_g(distance_km: float, payload_g: float) -> float:
 DASHBOARD_URL = os.environ.get("DASHBOARD_URL", "http://localhost:5000")
 
 
-def fetch_surplus_from_dashboard(nodes: list[Node]) -> list[Node]:
+def fetch_surplus_from_dashboard(nodes: list[Node], region: str = "east-coast") -> list[Node]:
     """
     Call the IoT Agape dashboard surplus endpoint and update node surplus_g.
     Falls back to sample values when the dashboard is unreachable.
     """
-    sample_surplus = {"vineland": 800.0}  # fallback
+    hub_id = next((n.node_id for n in nodes if n.node_type == "hub"), None)
+    sample_surplus = {hub_id: 800.0} if hub_id else {}
 
     if requests is not None:
         try:
             resp = requests.get(f"{DASHBOARD_URL}/api/agape/surplus", timeout=3)
             if resp.ok:
                 for tray in resp.json():
-                    # Each surplus tray contributes 100 g of deliverable surplus
-                    sample_surplus["vineland"] = sample_surplus.get("vineland", 0) + 100
+                    # Each surplus tray contributes 100 g of deliverable surplus to the hub
+                    if hub_id:
+                        sample_surplus[hub_id] = sample_surplus.get(hub_id, 0) + 100
         except Exception:
             pass
 
@@ -261,9 +292,21 @@ def _greedy_routes(supply_nodes: list[Node], demand_nodes: list[Node], all_nodes
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    nodes = fetch_surplus_from_dashboard(DEFAULT_NODES)
+    import argparse as _argparse
+
+    _parser = _argparse.ArgumentParser(description="VinelandEternal Drone Grid Optimizer")
+    _parser.add_argument(
+        "--region",
+        choices=list(REGIONS.keys()),
+        default="east-coast",
+        help="Deployment region to optimise (default: east-coast)",
+    )
+    _args = _parser.parse_args()
+
+    nodes = get_nodes_for_region(_args.region)
+    nodes = fetch_surplus_from_dashboard(nodes, region=_args.region)
     plan = optimize_routes(nodes)
-    print("\n🚁 VinelandEternal Drone Grid — Optimized Flight Plan")
+    print(f"\n🚁 VinelandEternal Drone Grid — {_args.region.title()} — Optimized Flight Plan")
     print(json.dumps(plan.summary(), indent=2))
     print(f"\n✅ {len(plan.legs)} leg(s) | "
           f"{plan.total_payload_g:.0f} g delivered | "

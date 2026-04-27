@@ -105,7 +105,51 @@ jobs:
           assert resp.get_json()['tray_id'] == 'tray1'
           assert client.get('/api/agape/nonexistent').status_code == 404
           assert len(client.get('/api/agape').get_json()) == len(m.sensors)
+          # location field present on all trays
+          for t in client.get('/api/agape').get_json():
+              assert 'location' in t, f'location missing from {t[\"tray_id\"]}'
           print('sensor-dashboard.py: all tests passed')
+          "
+
+      - name: Run region and nexus-status endpoint tests
+        run: |
+          python -c "
+          import sys, importlib.util
+          spec = importlib.util.spec_from_file_location('sensor_dashboard', 'iot-agape/sensor-dashboard.py')
+          m = importlib.util.module_from_spec(spec)
+          sys.modules['sensor_dashboard'] = m
+          spec.loader.exec_module(m)
+          client = m.app.test_client()
+
+          # Region filtering
+          r = client.get('/api/agape/region/Vineland')
+          assert r.status_code == 200
+          nj = r.get_json()
+          assert len(nj) == 5, f'Expected 5 NJ trays, got {len(nj)}'
+
+          r = client.get('/api/agape/region/Seattle')
+          assert r.status_code == 200, r.data
+          sea = r.get_json()
+          assert len(sea) == 2, f'Expected 2 Seattle trays, got {len(sea)}'
+
+          r = client.get('/api/agape/region/Portland')
+          assert r.status_code == 200
+          assert len(r.get_json()) == 2
+
+          r = client.get('/api/agape/region/San Francisco')
+          assert r.status_code == 200
+          assert len(r.get_json()) == 2
+
+          assert client.get('/api/agape/region/nowhere').status_code == 404
+
+          # Nexus status summary
+          r = client.get('/api/nexus/status')
+          assert r.status_code == 200
+          ns = r.get_json()
+          assert ns['total_trays'] == len(m.sensors)
+          assert ns['regions_active'] == 4
+          assert 'region_breakdown' in ns
+          print('region + nexus-status endpoints: all tests passed')
           "
 
       - name: Run grid optimizer tests
@@ -120,7 +164,16 @@ jobs:
           assert 40 < d < 80, f'Haversine out of range: {d}'
           c = m.carbon_saved_g(5.0, 500.0)
           assert c > 0
-          print(f'grid-optimizer.py: haversine={d:.1f} km, carbon_saved={c:.1f} g — passed')
+          # Regions registry
+          assert m.DEFAULT_NODES is m.EAST_COAST_NODES
+          assert 'east-coast' in m.REGIONS and 'west-coast' in m.REGIONS
+          wc_ids = {n.node_id for n in m.WEST_COAST_NODES}
+          assert 'seattle' in wc_ids and 'portland' in wc_ids and 'sf' in wc_ids
+          # Deep copy prevents mutation of canonical list
+          wc1 = m.get_nodes_for_region('west-coast')
+          wc2 = m.get_nodes_for_region('west-coast')
+          assert wc1 is not wc2
+          print(f'grid-optimizer.py: haversine={d:.1f} km, carbon_saved={c:.1f} g, West Coast nodes={len(wc_ids)} — passed')
           "
 
       - name: Run grant automation tests
@@ -135,7 +188,13 @@ jobs:
           assert payload['finalized'] is True
           assert 'applicant' in payload
           assert len(payload['project']['crops']) > 0
-          print('grant-automation.py: payload structure valid — passed')
+          # West Coast grants
+          for key in ('wa_scbgp', 'or_scbgp', 'ca_cdfa'):
+              g = m.GRANTS[key]
+              p = m.build_application_payload(g, m.ApplicantProfile())
+              assert p['finalized'] is True, f'{key} payload not finalized'
+          assert len(m.GRANTS) == 7
+          print('grant-automation.py: all grants valid — passed')
           "
 
       - name: Run zaire ledger API tests
