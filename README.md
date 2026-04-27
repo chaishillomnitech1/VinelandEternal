@@ -88,7 +88,71 @@ python grant-automation.py
 
 ---
 
-## Contribution Guidelines 🌻
+## Smart Contracts & dApp 🔗
+
+The on-chain layer lives in the root of this repository and targets **Polygon Mumbai** (testnet) and **Polygon Mainnet**.
+
+### Contract Architecture
+
+| Contract | Symbol | Description |
+|---|---|---|
+| `MirrorToken` | `$MIRROR` | ERC-20 with 2% Consciousness Dividend + 2.5% Zakat on every transfer |
+| `ConsciousnessMirrorNFT` | `CMIRROR` | ERC-721 collection of 20 ScrollSoul NFTs (12 Journey · 7 Pillar · 1 Master) |
+| `MirrorStaking` | — | Stake CMIRROR NFTs to earn `$MIRROR` · Master token earns 3× · 2.5% zakat on claims |
+
+### Quick Start
+
+```bash
+# 1. Install dependencies
+npm install
+
+# 2. Copy and fill in your keys
+cp .env.example .env
+# → set DEPLOYER_PRIVATE_KEY, MUMBAI_RPC_URL, ZAKAT_POOL_ADDRESS, etc.
+
+# 3. Compile contracts
+npm run compile
+
+# 4. Run the test suite (all 3 contracts, 60+ tests)
+npm test
+
+# 5. Deploy to Mumbai testnet
+npm run deploy:mumbai
+
+# 6. Upload NFT metadata to Arweave
+npm run upload-metadata
+
+# 7. Point the NFT contract to Arweave
+npm run set-uri:mumbai
+
+# 8. Seed the staking reward pool (default: 100,000 $MIRROR)
+npm run deposit-rewards:mumbai
+
+# 9. Open the dApp
+open frontend/index.html
+```
+
+### Polygon Mainnet Deployment
+
+```bash
+# Set POLYGON_RPC_URL in .env, then:
+npm run deploy:polygon
+npm run set-uri:polygon
+npm run deposit-rewards:polygon
+```
+
+### Key Environment Variables
+
+| Variable | Description |
+|---|---|
+| `DEPLOYER_PRIVATE_KEY` | Wallet that pays gas and signs deploy txns |
+| `MUMBAI_RPC_URL` | Polygon Mumbai RPC (free from Alchemy / Infura) |
+| `POLYGON_RPC_URL` | Polygon Mainnet RPC |
+| `POLYGONSCAN_API_KEY` | For automatic contract verification |
+| `ZAKAT_POOL_ADDRESS` | Recipient of all 2.5% zakat flows |
+| `ARWEAVE_KEY_PATH` | Path to your Arweave wallet JSON (for metadata upload) |
+
+---
 
 Every line of code, document, or metric deposited here must reflect two principles:
 

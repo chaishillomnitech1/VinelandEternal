@@ -214,8 +214,8 @@ contract ConsciousnessMirrorNFT {
 
     /**
      * @notice Mint the next available token.
-     *         Caller must send exactly `mintPrice` wei (or more — excess
-     *         is NOT refunded; use the exact amount).
+     *         Caller must send at least `mintPrice` wei.
+     *         Any excess payment is automatically refunded.
      *         Reverts when collection is sold out or mint is paused.
      */
     function publicMint() external payable {
@@ -226,6 +226,13 @@ contract ConsciousnessMirrorNFT {
         uint256 tokenId = nextMintId;
         unchecked { nextMintId++; }
         _mint(msg.sender, tokenId);
+
+        // Refund any overpayment
+        uint256 excess = msg.value - mintPrice;
+        if (excess > 0) {
+            (bool ok, ) = msg.sender.call{value: excess}("");
+            require(ok, "ConsciousnessMirrorNFT: refund failed");
+        }
     }
 
     /**

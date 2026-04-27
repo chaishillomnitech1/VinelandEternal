@@ -19,6 +19,16 @@ module.exports = {
       url: "http://127.0.0.1:8545",
     },
 
+    // ── Polygon Mainnet ───────────────────────────────────────────────────────
+    polygon: {
+      url: process.env.POLYGON_RPC_URL || "https://polygon-rpc.com",
+      accounts:
+        process.env.DEPLOYER_PRIVATE_KEY !== undefined
+          ? [process.env.DEPLOYER_PRIVATE_KEY]
+          : [],
+      chainId: 137,
+    },
+
     // ── Mumbai (Polygon testnet) ───────────────────────────────────────────
     // Set MUMBAI_RPC_URL and DEPLOYER_PRIVATE_KEY in .env
     mumbai: {
@@ -45,6 +55,7 @@ module.exports = {
   etherscan: {
     apiKey: {
       polygonMumbai: process.env.POLYGONSCAN_API_KEY || "",
+      polygon:       process.env.POLYGONSCAN_API_KEY || "",
       sepolia:       process.env.ETHERSCAN_API_KEY   || "",
     },
   },

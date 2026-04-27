@@ -525,12 +525,37 @@ jobs:
           echo "infinite-tracker.sql: schema valid, 1 seed operator"
 
   # -------------------------------------------------------------------------
-  # 5. Deploy to Vercel (production — main branch only)
+  # 5. Smart-contract compile & test (Hardhat)
+  # -------------------------------------------------------------------------
+  test-contracts:
+    name: Smart Contract Tests (Hardhat)
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Compile contracts
+        run: npm run compile
+
+      - name: Run Hardhat test suite
+        run: npm test
+
+  # -------------------------------------------------------------------------
+  # 6. Deploy to Vercel (production — main branch only)
   # -------------------------------------------------------------------------
   deploy:
     name: Deploy to Vercel
     runs-on: ubuntu-latest
-    needs: [test-python, test-node, test-sql]
+    needs: [test-python, test-node, test-sql, test-contracts]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     permissions:
       contents: read
