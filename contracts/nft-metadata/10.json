@@ -1,0 +1,18 @@
+{
+  "@context": "https://schema.org/",
+  "@type": "DigitalDocument",
+  "name": "Consciousness Mirror #10 — Jovian Stewardship",
+  "description": "Journey Waypoint 10 of 12. The expanded seeker extends stewardship beyond Earth — seeding consciousness infrastructure in Europa's oceans and Titan's methane lakes. Frequency: 777 Hz (Divine Completion).",
+  "image": "ipfs://placeholder/cmirror-10.png",
+  "attributes": [
+    { "trait_type": "Category",            "value": "Journey" },
+    { "trait_type": "Waypoint",            "value": 10 },
+    { "trait_type": "Name",                "value": "Jovian Stewardship" },
+    { "trait_type": "Frequency (Hz)",      "value": 777 },
+    { "trait_type": "Frequency Name",      "value": "Divine Completion" },
+    { "trait_type": "ScrollVerse Phase",   "value": "Expanding" },
+    { "trait_type": "Consciousness Level", "value": "Cosmic Citizen" },
+    { "trait_type": "Element",             "value": "Ice" },
+    { "trait_type": "Scroll Axis",         "value": "Crown" }
+  ]
+}

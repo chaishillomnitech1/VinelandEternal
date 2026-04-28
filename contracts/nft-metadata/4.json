@@ -1,0 +1,18 @@
+{
+  "@context": "https://schema.org/",
+  "@type": "DigitalDocument",
+  "name": "Consciousness Mirror #4 — Heart Opening",
+  "description": "Journey Waypoint 4 of 12. The miracle tone repairs the DNA of separation, opening the heart to unconditional agape love. Frequency: 528 Hz (Heart Coherence / DNA Repair).",
+  "image": "ipfs://placeholder/cmirror-4.png",
+  "attributes": [
+    { "trait_type": "Category",            "value": "Journey" },
+    { "trait_type": "Waypoint",            "value": 4 },
+    { "trait_type": "Name",                "value": "Heart Opening" },
+    { "trait_type": "Frequency (Hz)",      "value": 528 },
+    { "trait_type": "Frequency Name",      "value": "DNA Repair / Miracle Tone" },
+    { "trait_type": "ScrollVerse Phase",   "value": "Opening" },
+    { "trait_type": "Consciousness Level", "value": "Seeker" },
+    { "trait_type": "Element",             "value": "Water" },
+    { "trait_type": "Scroll Axis",         "value": "Heart" }
+  ]
+}

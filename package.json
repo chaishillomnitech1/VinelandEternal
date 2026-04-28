@@ -1,0 +1,39 @@
+{
+  "name": "vineland-eternal",
+  "version": "1.0.0",
+  "description": "VinelandEternal ScrollVerse smart contracts, deploy scripts, and dApp",
+  "private": true,
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "node": "hardhat node",
+    "deploy:mumbai": "hardhat run scripts/deploy.js --network mumbai",
+    "deploy:polygon": "hardhat run scripts/deploy.js --network polygon",
+    "deploy:sepolia": "hardhat run scripts/deploy.js --network sepolia",
+    "deploy:local": "hardhat run scripts/deploy.js --network localhost",
+    "set-uri:mumbai": "hardhat run scripts/set-base-uri.js --network mumbai",
+    "set-uri:polygon": "hardhat run scripts/set-base-uri.js --network polygon",
+    "deposit-rewards:mumbai": "hardhat run scripts/deposit-rewards.js --network mumbai",
+    "deposit-rewards:polygon": "hardhat run scripts/deposit-rewards.js --network polygon",
+    "upload-metadata": "node scripts/upload-arweave.js",
+    "verify:mumbai": "hardhat verify --network mumbai",
+    "verify:polygon": "hardhat verify --network polygon",
+    "deploy-mars-dao:mumbai": "hardhat run scripts/deploy-mars-dao.js --network mumbai",
+    "deploy-mars-dao:polygon": "hardhat run scripts/deploy-mars-dao.js --network polygon",
+    "deploy-mars-dao:local": "hardhat run scripts/deploy-mars-dao.js --network localhost",
+    "blast": "node scripts/global-blast.js",
+    "blast:dry": "node scripts/global-blast.js --dry-run",
+    "cex-listing": "node scripts/cex-listing.js --exchanges all",
+    "cex-listing:dry": "node scripts/cex-listing.js --exchanges all --dry-run",
+    "trading-bot": "python3 scripts/qfs-trading-bot.py",
+    "trading-bot:dry": "python3 scripts/qfs-trading-bot.py --dry-run"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "hardhat": "^2.28.6"
+  },
+  "dependencies": {
+    "arweave": "^1.15.0",
+    "dotenv": "^16.4.5"
+  }
+}

@@ -1,6 +1,6 @@
 {
-  "schema_version": "1.1",
-  "description": "VinelandEternal Lunar Nexus — real-time surplus alignment graph.",
+  "schema_version": "1.0",
+  "description": "VinelandEternal Lunar Nexus — interplanetary surplus node graph",
   "generated_at": "2026-04-27T06:51:17Z",
   "coordinate_system": "cislunar",
   "nodes": [
@@ -19,29 +19,189 @@
       "crops": ["Basil", "Arugula", "Pea Shoots", "Cilantro", "Baby Bok Choy"]
     },
     {
-      "id": "moon_shackleton",
-      "label": "Shackleton Crater Lunar Base",
-      "node_type": "lunar_base",
+      "id": "earth_seattle",
+      "label": "Seattle Sanctuary, Earth",
+      "node_type": "earth_anchor",
+      "body": "Earth",
+      "location": "Seattle, WA, USA",
+      "lat": 47.6062,
+      "lon": -122.3321,
+      "altitude_km": 0.0,
+      "surplus_capacity_g": 8000,
+      "demand_g": 0,
+      "launch_ready": true,
+      "crops": ["Kale", "Swiss Chard"]
+    },
+    {
+      "id": "earth_sf",
+      "label": "San Francisco Sanctuary, Earth",
+      "node_type": "earth_anchor",
+      "body": "Earth",
+      "location": "San Francisco, CA, USA",
+      "lat": 37.7749,
+      "lon": -122.4194,
+      "altitude_km": 0.0,
+      "surplus_capacity_g": 9000,
+      "demand_g": 0,
+      "launch_ready": true,
+      "crops": ["Mustard Greens", "Mizuna"]
+    },
+    {
+      "id": "leo_staging",
+      "label": "Low Earth Orbit Staging Node",
+      "node_type": "orbital_relay",
+      "body": "Earth",
+      "location": "LEO — 400 km",
+      "lat": null,
+      "lon": null,
+      "altitude_km": 400.0,
+      "surplus_capacity_g": 500,
+      "demand_g": 200,
+      "launch_ready": false,
+      "crops": [],
+      "notes": "Micro-gravity seed preservation and logistics relay"
+    },
+    {
+      "id": "lunar_gateway",
+      "label": "Lunar Gateway Station",
+      "node_type": "orbital_relay",
       "body": "Moon",
-      "location": "Shackleton Crater South Pole",
+      "location": "Near Rectilinear Halo Orbit (NRHO) — ~70,000 km from Moon",
+      "lat": null,
+      "lon": null,
+      "altitude_km": 70000.0,
+      "surplus_capacity_g": 200,
+      "demand_g": 150,
+      "launch_ready": false,
+      "crops": [],
+      "notes": "Cislunar logistics hub; accepts compressed seed packages and nutrient concentrate"
+    },
+    {
+      "id": "lunar_base_south_pole",
+      "label": "Artemis Lunar Base — South Pole",
+      "node_type": "lunar_surface",
+      "body": "Moon",
+      "location": "Shackleton Crater Rim, Lunar South Pole",
       "lat": -89.9,
       "lon": 0.0,
       "altitude_km": 0.0,
-      "surplus_capacity_g": 1000,
-      "demand_g": 800,
+      "surplus_capacity_g": 100,
+      "demand_g": 500,
       "launch_ready": false,
-      "crops": ["Potatoes", "Quinoa"]
+      "crops": ["Basil (micro)", "Pea Shoots (micro)"],
+      "notes": "Closed-loop hydroponic bay; relies on Earth supply chain for seed replenishment"
+    },
+    {
+      "id": "lunar_base_mare_imbrium",
+      "label": "Research Outpost — Mare Imbrium",
+      "node_type": "lunar_surface",
+      "body": "Moon",
+      "location": "Mare Imbrium, ~26°N 344°E",
+      "lat": 26.0,
+      "lon": 344.0,
+      "altitude_km": 0.0,
+      "surplus_capacity_g": 50,
+      "demand_g": 300,
+      "launch_ready": false,
+      "crops": ["Arugula (micro)"],
+      "notes": "Regolith-substrate research; agape metrics tracked for crew well-being"
     }
   ],
   "edges": [
     {
       "source": "earth_vineland",
-      "target": "moon_shackleton",
-      "delta_v_kms": 12.2,
-      "transit_days": 7,
-      "payload_limit_kg": 2000,
-      "cost_per_kg_usd": 5000.0,
-      "description": "Optimal Earth-Moon transfer orbit route for surplus launch."
+      "target": "leo_staging",
+      "edge_type": "supply_route",
+      "transport": "rocket",
+      "delta_v_km_s": 9.4,
+      "transit_days": 0.04,
+      "cost_per_kg_usd": 2700,
+      "payload_limit_g": 500,
+      "notes": "LEO insertion from Cape Canaveral; payload = compressed seed + nutrient packets"
+    },
+    {
+      "source": "earth_seattle",
+      "target": "leo_staging",
+      "edge_type": "supply_route",
+      "transport": "rocket",
+      "delta_v_km_s": 9.4,
+      "transit_days": 0.04,
+      "cost_per_kg_usd": 2700,
+      "payload_limit_g": 500,
+      "notes": "Launch from Vandenberg SFB"
+    },
+    {
+      "source": "earth_sf",
+      "target": "leo_staging",
+      "edge_type": "supply_route",
+      "transport": "rocket",
+      "delta_v_km_s": 9.4,
+      "transit_days": 0.04,
+      "cost_per_kg_usd": 2700,
+      "payload_limit_g": 500,
+      "notes": "Launch from Vandenberg SFB"
+    },
+    {
+      "source": "leo_staging",
+      "target": "lunar_gateway",
+      "edge_type": "supply_route",
+      "transport": "cislunar_transfer",
+      "delta_v_km_s": 0.9,
+      "transit_days": 3.5,
+      "cost_per_kg_usd": 8000,
+      "payload_limit_g": 200,
+      "notes": "Trans-lunar injection to NRHO"
+    },
+    {
+      "source": "lunar_gateway",
+      "target": "lunar_base_south_pole",
+      "edge_type": "supply_route",
+      "transport": "descent_vehicle",
+      "delta_v_km_s": 1.9,
+      "transit_days": 0.17,
+      "cost_per_kg_usd": 15000,
+      "payload_limit_g": 100,
+      "notes": "Powered descent to south polar base"
+    },
+    {
+      "source": "lunar_gateway",
+      "target": "lunar_base_mare_imbrium",
+      "edge_type": "supply_route",
+      "transport": "descent_vehicle",
+      "delta_v_km_s": 2.1,
+      "transit_days": 0.25,
+      "cost_per_kg_usd": 15000,
+      "payload_limit_g": 50,
+      "notes": "Powered descent to near-equatorial research outpost"
+    },
+    {
+      "source": "lunar_base_south_pole",
+      "target": "earth_vineland",
+      "edge_type": "telemetry",
+      "transport": "data_link",
+      "delta_v_km_s": 0,
+      "transit_days": 0,
+      "cost_per_kg_usd": 0,
+      "payload_limit_g": 0,
+      "notes": "Agape-score telemetry back to Vineland Sanctuary for nexus graph update"
+    },
+    {
+      "source": "lunar_base_mare_imbrium",
+      "target": "earth_vineland",
+      "edge_type": "telemetry",
+      "transport": "data_link",
+      "delta_v_km_s": 0,
+      "transit_days": 0,
+      "cost_per_kg_usd": 0,
+      "payload_limit_g": 0,
+      "notes": "Agape-score telemetry; regolith-substrate research data"
     }
-  ]
+  ],
+  "supply_logic": {
+    "seed_compression_ratio": 0.05,
+    "nutrient_concentrate_ratio": 0.10,
+    "agape_threshold_for_lunar_dispatch": 92,
+    "min_earth_surplus_g_before_lunar_dispatch": 5000,
+    "description": "Lunar dispatch is triggered only when Earth sanctuary surplus exceeds min_earth_surplus_g_before_lunar_dispatch AND average agape_value across all active trays meets or exceeds agape_threshold_for_lunar_dispatch. Seed packages are compressed to seed_compression_ratio of raw harvest weight before manifesting for launch. Nutrient concentrates to nutrient_concentrate_ratio."
+  }
 }

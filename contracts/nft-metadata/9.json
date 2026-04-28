@@ -1,0 +1,18 @@
+{
+  "@context": "https://schema.org/",
+  "@type": "DigitalDocument",
+  "name": "Consciousness Mirror #9 — ScrollRoom Communion",
+  "description": "Journey Waypoint 9 of 12. The seeker enters the collective ScrollVerse — co-creating with cosmic citizenry across all dimensions of the VR ScrollRooms. Frequency: 369 Hz (Tesla Vortex / Manifestation).",
+  "image": "ipfs://placeholder/cmirror-9.png",
+  "attributes": [
+    { "trait_type": "Category",            "value": "Journey" },
+    { "trait_type": "Waypoint",            "value": 9 },
+    { "trait_type": "Name",                "value": "ScrollRoom Communion" },
+    { "trait_type": "Frequency (Hz)",      "value": 369 },
+    { "trait_type": "Frequency Name",      "value": "Tesla Vortex" },
+    { "trait_type": "ScrollVerse Phase",   "value": "Co-Creating" },
+    { "trait_type": "Consciousness Level", "value": "Cosmic Citizen" },
+    { "trait_type": "Element",             "value": "Plasma" },
+    { "trait_type": "Scroll Axis",         "value": "Heart" }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "@context": "https://schema.org/",
+  "@type": "DigitalDocument",
+  "name": "Consciousness Mirror #5 — Voice of Truth",
+  "description": "Journey Waypoint 5 of 12. The throat chakra activates; the seeker speaks their ScrollSoul purpose into manifestation. Frequency: 528 Hz (expressive harmonic).",
+  "image": "ipfs://placeholder/cmirror-5.png",
+  "attributes": [
+    { "trait_type": "Category",            "value": "Journey" },
+    { "trait_type": "Waypoint",            "value": 5 },
+    { "trait_type": "Name",                "value": "Voice of Truth" },
+    { "trait_type": "Frequency (Hz)",      "value": 528 },
+    { "trait_type": "Frequency Name",      "value": "DNA Repair / Miracle Tone" },
+    { "trait_type": "ScrollVerse Phase",   "value": "Speaking" },
+    { "trait_type": "Consciousness Level", "value": "Awakened" },
+    { "trait_type": "Element",             "value": "Air" },
+    { "trait_type": "Scroll Axis",         "value": "Throat" }
+  ]
+}

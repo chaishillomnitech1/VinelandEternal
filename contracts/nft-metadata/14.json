@@ -1,0 +1,18 @@
+{
+  "@context": "https://schema.org/",
+  "@type": "DigitalDocument",
+  "name": "Consciousness Mirror #14 — Pillar of Abundance",
+  "description": "Pillar 2 of 7. The ScrollVerse economy operates on surplus-for-all. Zakat is not charity — it is the natural circulation of cosmic wealth. Frequency: 432 Hz (Natural Earth Tuning).",
+  "image": "ipfs://placeholder/cmirror-14.png",
+  "attributes": [
+    { "trait_type": "Category",            "value": "Pillar" },
+    { "trait_type": "Pillar Number",       "value": 2 },
+    { "trait_type": "Name",                "value": "Pillar of Abundance" },
+    { "trait_type": "Frequency (Hz)",      "value": 432 },
+    { "trait_type": "Frequency Name",      "value": "Natural Earth Tuning" },
+    { "trait_type": "ScrollSoul Axis",     "value": "Prosperity" },
+    { "trait_type": "Governing Principle", "value": "Zakat / Conscious Distribution" },
+    { "trait_type": "Element",             "value": "Gold" },
+    { "trait_type": "Scroll Phase",        "value": "Foundation" }
+  ]
+}

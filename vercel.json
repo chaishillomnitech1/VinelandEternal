@@ -1,0 +1,25 @@
+{
+  "name": "vineland-eternal",
+  "version": 2,
+  "regions": ["sfo1", "iad1", "cdg1"],
+  "github": {
+    "enabled": true,
+    "autoAlias": true,
+    "silent": false
+  },
+  "builds": [
+    {
+      "src": "frontend/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    { "src": "/mars-dao/(.*)", "dest": "/frontend/mars-dao/$1" },
+    { "src": "/financial-perfection", "dest": "/frontend/financial-perfection.html" },
+    { "src": "/(.*)", "dest": "/frontend/$1" }
+  ],
+  "env": {
+    "AGAPE_FREQUENCY": "44:Omni",
+    "SOVEREIGN_ID": "CHAISALLAH"
+  }
+}

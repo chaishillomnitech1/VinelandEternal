@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mars DAO — Tokenized Civilization Governance</title>
+<style>
+  /* ── Reset & Base ───────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:      #ECEFF1;
+    --title:   #B71C1C;
+    --body:    #263238;
+    --accent:  #FF5252;
+    --soft:    #FFEBEE;
+    --border:  #B71C1C;
+    --dim:     #607D8B;
+    --green:   #2E7D32;
+    --amber:   #F57F17;
+    --code-bg: #263238;
+    --code-fg: #ECEFF1;
+  }
+
+  html, body {
+    height: 100%;
+    font-family: 'Courier New', Courier, monospace;
+    background: var(--body);
+    color: var(--body);
+    overflow: hidden;
+  }
+
+  /* ── Slide shell ────────────────────────────────────── */
+  #deck {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .slide {
+    display: none;
+    position: absolute;
+    inset: 0;
+    background: var(--bg);
+    padding: 3rem 4rem;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+  .slide.active { display: flex; }
+
+  /* Inverted slides */
+  .slide.dark {
+    background: #0D0D0D;
+    color: #ECEFF1;
+  }
+  .slide.dark h1, .slide.dark h2 { color: var(--accent); }
+  .slide.dark .sub { color: #B0BEC5; }
+
+  /* ── Typography ─────────────────────────────────────── */
+  h1 {
+    font-family: 'Georgia', serif;
+    font-size: clamp(2rem, 5vw, 3.8rem);
+    font-style: italic;
+    color: var(--title);
+    line-height: 1.15;
+    margin-bottom: 0.4rem;
+  }
+  h2 {
+    font-family: 'Georgia', serif;
+    font-size: clamp(1.4rem, 3.5vw, 2.5rem);
+    font-style: italic;
+    color: var(--title);
+    margin-bottom: 1.2rem;
+  }
+  h3 {
+    font-size: 1rem;
+    font-weight: bold;
+    color: var(--title);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.4rem;
+  }
+  p, li { font-size: clamp(0.85rem, 1.5vw, 1rem); line-height: 1.7; color: var(--body); }
+  strong { color: var(--title); }
+  .sub { color: var(--dim); font-size: 0.85rem; }
+
+  /* ── Layout helpers ─────────────────────────────────── */
+  .grid2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    flex: 1;
+  }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem; flex: 1; }
+  .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.2rem; flex: 1; }
+  .grid5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.8rem; flex: 1; }
+  .col   { display: flex; flex-direction: column; gap: 1rem; }
+
+  /* ── Card / Box ─────────────────────────────────────── */
+  .box {
+    border: 1px solid var(--border);
+    padding: 1rem 1.2rem;
+    background: #fff;
+  }
+  .box.amber { border-color: var(--amber); }
+  .box.green { border-color: var(--green); }
+  .box.dark-fill { background: var(--code-bg); color: var(--code-fg); border-color: var(--dim); }
+  .box h3 { margin-bottom: 0.5rem; }
+
+  /* ── Code block ─────────────────────────────────────── */
+  pre {
+    background: var(--code-bg);
+    color: var(--code-fg);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: clamp(0.72rem, 1.3vw, 0.9rem);
+    padding: 1rem 1.2rem;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    line-height: 1.6;
+  }
+  code { color: var(--accent); }
+
+  /* ── Title slide ────────────────────────────────────── */
+  .title-slide {
+    flex-direction: row;
+    align-items: center;
+  }
+  .title-left { flex: 6; }
+  .title-right {
+    flex: 4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .mars-svg { width: min(280px, 35vw); opacity: 0.88; }
+  .title-main { font-size: clamp(3rem, 7vw, 5.5rem); margin-bottom: 0.5rem; }
+  .title-sub {
+    font-size: clamp(1rem, 2.5vw, 1.6rem);
+    font-family: 'Courier New', Courier, monospace;
+    color: var(--dim);
+    margin-bottom: 1.5rem;
+  }
+  .token-pills { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+  .pill {
+    border: 1px solid var(--border);
+    padding: 0.25rem 0.8rem;
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: var(--title);
+    letter-spacing: 0.05em;
+  }
+  .footer-link { margin-top: 1.5rem; font-size: 0.78rem; color: var(--dim); }
+
+  /* ── Divider ────────────────────────────────────────── */
+  hr.rule { border: none; border-top: 1px solid var(--border); margin: 0.8rem 0; }
+
+  /* ── Tag ─────────────────────────────────────────────── */
+  .tag {
+    display: inline-block;
+    background: var(--soft);
+    border: 1px solid var(--border);
+    color: var(--title);
+    font-size: 0.75rem;
+    padding: 0.1rem 0.5rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-right: 0.3rem;
+  }
+  .tag.amber { background: #FFF8E1; border-color: var(--amber); color: var(--amber); }
+  .tag.green { background: #E8F5E9; border-color: var(--green); color: var(--green); }
+
+  /* ── Tier stack ─────────────────────────────────────── */
+  .tier {
+    border: 2px solid var(--border);
+    padding: 0.8rem 1.2rem;
+    margin-bottom: 0.6rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .tier-num {
+    font-size: 2rem;
+    font-weight: 900;
+    color: var(--title);
+    line-height: 1;
+    min-width: 2.5rem;
+  }
+  .tier:last-child { margin-bottom: 0; }
+
+  /* ── Flow steps ─────────────────────────────────────── */
+  .flow {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0;
+    flex: 1;
+    align-content: center;
+  }
+  .flow-step {
+    border: 1px solid var(--border);
+    padding: 0.6rem 0.8rem;
+    font-size: 0.85rem;
+    font-weight: bold;
+    background: #fff;
+    text-align: center;
+  }
+  .flow-step.amber { border-color: var(--amber); background: #FFF8E1; color: var(--amber); }
+  .flow-arrow {
+    font-size: 1.2rem;
+    color: var(--title);
+    padding: 0 0.3rem;
+  }
+
+  /* ── Timeline ───────────────────────────────────────── */
+  .timeline { display: flex; flex-direction: column; gap: 0.6rem; flex: 1; }
+  .tl-row { display: flex; align-items: flex-start; gap: 1rem; }
+  .tl-num {
+    min-width: 1.8rem;
+    height: 1.8rem;
+    background: var(--title);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+  }
+
+  /* ── Stat boxes ─────────────────────────────────────── */
+  .stat-big {
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    font-weight: 900;
+    color: var(--title);
+    line-height: 1;
+  }
+
+  /* ── Flywheel / Circle ──────────────────────────────── */
+  .flywheel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    flex: 1;
+  }
+  .fw-row { display: flex; align-items: center; gap: 0.5rem; }
+  .fw-box {
+    border: 1px solid var(--border);
+    padding: 0.5rem 1rem;
+    font-size: 0.88rem;
+    font-weight: bold;
+    color: var(--title);
+    background: var(--soft);
+  }
+  .fw-arrow { color: var(--title); font-size: 1.5rem; }
+
+  /* ── Vision slide ───────────────────────────────────── */
+  .vision-text {
+    font-family: 'Georgia', serif;
+    font-size: clamp(1.1rem, 2.5vw, 1.7rem);
+    font-style: italic;
+    color: #ECEFF1;
+    line-height: 1.9;
+    text-align: center;
+    max-width: 800px;
+    margin: auto;
+  }
+  .vision-line { color: var(--accent); }
+
+  /* ── CTA bullets ────────────────────────────────────── */
+  .cta-list { list-style: none; display: flex; flex-direction: column; gap: 0.8rem; flex: 1; }
+  .cta-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8rem;
+    border: 1px solid var(--border);
+    padding: 0.6rem 1rem;
+    background: #fff;
+  }
+  .cta-num {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: var(--title);
+    min-width: 2rem;
+    line-height: 1;
+  }
+
+  /* ── Dashboard ──────────────────────────────────────── */
+  .dashboard {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    flex: 1;
+  }
+  .dash-cell {
+    border: 1px solid var(--border);
+    padding: 0.8rem 1rem;
+    background: #fff;
+  }
+  .dash-label { font-size: 0.75rem; color: var(--dim); text-transform: uppercase; letter-spacing: 0.05em; }
+  .dash-value { font-size: 1.6rem; font-weight: 900; color: var(--title); }
+
+  /* ── Navigation ─────────────────────────────────────── */
+  #nav {
+    position: fixed;
+    bottom: 1.2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    z-index: 100;
+  }
+  .nav-btn {
+    background: var(--title);
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1.4rem;
+    cursor: pointer;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9rem;
+    font-weight: bold;
+    letter-spacing: 0.05em;
+  }
+  .nav-btn:hover { background: var(--accent); }
+  .nav-btn:disabled { background: var(--dim); cursor: not-allowed; }
+  #slide-counter {
+    background: rgba(38,50,56,0.85);
+    color: #ECEFF1;
+    padding: 0.35rem 0.8rem;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.85rem;
+    min-width: 5rem;
+    text-align: center;
+  }
+  #progress {
+    position: fixed;
+    top: 0; left: 0;
+    height: 3px;
+    background: var(--accent);
+    transition: width 0.3s;
+    z-index: 200;
+  }
+
+  /* ── Checklist ──────────────────────────────────────── */
+  .checklist { list-style: none; }
+  .checklist li { padding: 0.3rem 0; display: flex; gap: 0.6rem; }
+  .checklist li::before { content: '✅'; }
+
+  /* ── Threat table ───────────────────────────────────── */
+  .threat-table { width: 100%; border-collapse: collapse; flex: 1; }
+  .threat-table th, .threat-table td {
+    border: 1px solid var(--border);
+    padding: 0.5rem 0.8rem;
+    text-align: left;
+    font-size: 0.88rem;
+  }
+  .threat-table th { background: var(--soft); color: var(--title); font-weight: bold; }
+  .threat-table td:first-child { color: #C62828; font-weight: bold; }
+  .threat-table td:last-child { color: var(--green); }
+
+  @media (max-width: 700px) {
+    .slide { padding: 1.5rem; }
+    .grid2, .grid3, .grid4, .grid5, .grid-roadmap { grid-template-columns: 1fr; }
+    .title-slide { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+<div id="deck">
+
+<!-- ══ SLIDE 1 ══ Title ══════════════════════════════════════════ -->
+<section class="slide active title-slide" id="s1">
+  <div class="title-left">
+    <h1 class="title-main">MARS DAO</h1>
+    <p class="title-sub">Tokenized Civilization Governance</p>
+    <hr class="rule" />
+    <p style="margin:0.8rem 0 1.2rem;color:var(--dim);">
+      Sovereign Chais Hill · VinelandEternal ScrollVerse · April 2026
+    </p>
+    <div class="token-pills">
+      <span class="pill">$MARS</span>
+      <span class="pill">$MIRROR</span>
+      <span class="pill">Polygon Mainnet</span>
+      <span class="pill">3-of-5 Multisig</span>
+    </div>
+    <p class="footer-link">
+      🌐 scrollport-xkjtdnvi.manus.space &nbsp;·&nbsp;
+      📁 github.com/chaishillomnitech1
+    </p>
+  </div>
+  <div class="title-right">
+    <svg class="mars-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="mg" cx="42%" cy="38%" r="58%">
+          <stop offset="0%" stop-color="#FF7043"/>
+          <stop offset="40%" stop-color="#C62828"/>
+          <stop offset="100%" stop-color="#4E1919"/>
+        </radialGradient>
+        <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+          <stop offset="60%" stop-color="transparent"/>
+          <stop offset="100%" stop-color="#FF5252" stop-opacity="0.25"/>
+        </radialGradient>
+      </defs>
+      <circle cx="100" cy="100" r="95" fill="url(#glow)"/>
+      <circle cx="100" cy="100" r="80" fill="url(#mg)"/>
+      <!-- Surface features -->
+      <ellipse cx="78" cy="82" rx="22" ry="9" fill="#A52714" opacity="0.5"/>
+      <ellipse cx="130" cy="110" rx="18" ry="7" fill="#A52714" opacity="0.4"/>
+      <ellipse cx="95" cy="130" rx="30" ry="8" fill="#8B1A1A" opacity="0.35"/>
+      <circle cx="62" cy="62" r="5" fill="#8B1A1A" opacity="0.6"/>
+      <circle cx="140" cy="75" r="3" fill="#8B1A1A" opacity="0.5"/>
+    </svg>
+  </div>
+</section>
+
+<!-- ══ SLIDE 2 ══ The Governance Crisis ══════════════════════════ -->
+<section class="slide" id="s2">
+  <h2>The Governance Crisis</h2>
+  <div class="grid2">
+    <div class="col">
+      <div class="box">
+        <h3>Why Traditional Governance Fails</h3>
+        <ul style="list-style:none;margin-top:0.5rem;">
+          <li style="padding:0.3rem 0;">⚠️ Power concentrates over time</li>
+          <li style="padding:0.3rem 0;">⚠️ Decisions made behind closed doors</li>
+          <li style="padding:0.3rem 0;">⚠️ No way to verify treasury honesty</li>
+          <li style="padding:0.3rem 0;">⚠️ Leaders serve indefinitely</li>
+          <li style="padding:0.3rem 0;">⚠️ Citizens have no recall mechanism</li>
+        </ul>
+      </div>
+      <div class="box" style="border-color:var(--accent);background:var(--soft);">
+        <h3 style="color:var(--accent);">On Mars This Is Existential</h3>
+        <p>A corrupt governor 50 million miles from Earth can <strong>kill everyone.</strong></p>
+      </div>
+    </div>
+    <div class="col">
+      <div class="box">
+        <div class="stat-big">86%</div>
+        <p class="sub">of citizens distrust their institutions (2024)</p>
+      </div>
+      <div class="box">
+        <div class="stat-big">50M mi</div>
+        <p class="sub">minimum distance to hold anyone accountable on Mars</p>
+      </div>
+      <div class="box">
+        <div class="stat-big">0 days</div>
+        <p class="sub">acceptable downtime in life-support governance</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ SLIDE 3 ══ Why Blockchain? ════════════════════════════════ -->
+<section class="slide" id="s3">
+  <h2>Why Blockchain?</h2>
+  <div class="grid2">
+    <div>
+      <pre><code>// Every vote on Mars DAO is:
+await dao.castVote(
+  proposalId,  // the proposal
+  1            // 1=FOR  0=AGAINST  2=ABSTAIN
+);
+
+// Permanently recorded.
+// Visible to everyone.
+// Enforced by mathematics.</code></pre>
+    </div>
+    <div class="col">
+      <div class="box green">
+        <h3>✅ Immutable</h3>
+        <p>Once recorded, cannot be altered</p>
+      </div>
+      <div class="box green">
+        <h3>✅ Transparent</h3>
+        <p>Every citizen can verify any decision</p>
+      </div>
+      <div class="box green">
+        <h3>✅ Automatic</h3>
+        <p>Rules execute themselves — no human required</p>
+      </div>
+      <div class="box green">
+        <h3>✅ Borderless</h3>
+        <p>Works identically: Vineland NJ ↔ Olympus Mons</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ SLIDE 4 ══ Three-Tier Architecture ════════════════════════ -->
+<section class="slide" id="s4">
+  <h2>Three-Tier Governance Architecture</h2>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:0.8rem;">
+    <div class="tier" style="border-width:3px;">
+      <div class="tier-num">1</div>
+      <div>
+        <h3>Core Council — 5 seats</h3>
+        <p>Executive tier · 3-of-5 multi-sig required · 180-day terms · Recall-eligible by community at any time</p>
+      </div>
+    </div>
+    <div class="tier" style="border-width:2px;">
+      <div class="tier-num">2</div>
+      <div>
+        <h3>Guild Councils — 5 specialized guilds</h3>
+        <p>TechGuild · AgriGuild · HealthGuild · EduGuild · CivicsGuild · Domain expertise over politics</p>
+      </div>
+    </div>
+    <div class="tier" style="border-width:1px;">
+      <div class="tier-num">3</div>
+      <div>
+        <h3>Community — All Token Holders</h3>
+        <p>All $MARS + $MIRROR holders · 1 token = 1 vote · Optional quadratic weight (√ balance)</p>
+      </div>
+    </div>
+    <p class="sub" style="margin-top:0.5rem;">
+      Each tier checks and balances the others. No single tier can act unilaterally on anything that matters.
+    </p>
+  </div>
+</section>
+
+<!-- ══ SLIDE 5 ══ Token Economy ══════════════════════════════════ -->
+<section class="slide" id="s5">
+  <h2>The Token Economy</h2>
+  <div class="grid2">
+    <div class="box">
+      <h3>$MARS — Primary Governance Token</h3>
+      <hr class="rule" />
+      <table style="width:100%;font-size:0.88rem;border-collapse:collapse;">
+        <tr><td style="padding:0.25rem 0;color:var(--dim);">Supply</td><td><strong>1,000,000 MARS</strong></td></tr>
+        <tr><td style="padding:0.25rem 0;color:var(--dim);">Zakat fee</td><td><strong>2.5%</strong> per transfer → Community Treasury</td></tr>
+        <tr><td style="padding:0.25rem 0;color:var(--dim);">Gov fee</td><td><strong>1.0%</strong> per transfer → Governance Reserve</td></tr>
+        <tr><td style="padding:0.25rem 0;color:var(--dim);">Voting</td><td>1 MARS = 1 vote (or √MARS quadratic)</td></tr>
+        <tr><td style="padding:0.25rem 0;color:var(--dim);">Rewards</td><td>Earn MARS by voting</td></tr>
+      </table>
+    </div>
+    <div class="box">
+      <h3>$MIRROR — Secondary Governance Weight</h3>
+      <hr class="rule" />
+      <table style="width:100%;font-size:0.88rem;border-collapse:collapse;">
+        <tr><td style="padding:0.25rem 0;color:var(--dim);">Source</td><td>VinelandEternal ScrollVerse</td></tr>
+        <tr><td style="padding:0.25rem 0;color:var(--dim);">Weight</td><td>1 MIRROR = 0.1 vote equivalent</td></tr>
+        <tr><td style="padding:0.25rem 0;color:var(--dim);">Benefit</td><td>ScrollVerse participants join DAO without buying MARS</td></tr>
+        <tr><td style="padding:0.25rem 0;color:var(--dim);">Incentive</td><td>2% Consciousness Dividend on holdings</td></tr>
+      </table>
+      <div class="box" style="margin-top:0.8rem;background:var(--soft);border-color:var(--accent);">
+        <p style="font-size:0.85rem;"><strong>Value creation = governance participation.</strong><br/>Build in the ecosystem → earn $MIRROR → earn voting weight.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ SLIDE 6 ══ Treasury Structure ═════════════════════════════ -->
+<section class="slide" id="s6">
+  <h2>Treasury Structure</h2>
+  <div class="grid2">
+    <div class="col">
+      <div class="box">
+        <h3>Holdings</h3>
+        <p>MATIC (native) + ERC-20 tokens (MARS, MIRROR)</p>
+        <p class="sub" style="margin-top:0.4rem;">100% on-chain · Real-time visibility</p>
+        <pre style="margin-top:0.5rem;font-size:0.8rem;"><code>dao.daoTreasuryBalance() // live balance</code></pre>
+      </div>
+      <div class="box" style="background:var(--soft);border-color:var(--accent);">
+        <h3 style="color:var(--accent);">🕋 Zakat Is Non-Negotiable</h3>
+        <p>Hard-coded. Cannot be disabled. 2.5% of every disbursement automatically flows to the community benefit pool.</p>
+        <p style="margin-top:0.5rem;font-weight:bold;color:var(--title);">Every financial action IS a charitable act.</p>
+      </div>
+    </div>
+    <div class="col">
+      <div class="box green"><h3>🔒 7-Day Timelock</h3><p>No instant withdrawals — community has 7 days to respond</p></div>
+      <div class="box green"><h3>🤝 3-of-5 Council Multisig</h3><p>Three independent council members must confirm any transfer</p></div>
+      <div class="box green"><h3>💸 2.5% Auto-Zakat</h3><p>Deducted before funds reach recipient — built into contract math</p></div>
+      <div class="box green"><h3>🗳️ Community Vote Required</h3><p>No treasury movement without a passed community proposal</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ SLIDE 7 ══ Proposal Lifecycle ═════════════════════════════ -->
+<section class="slide" id="s7">
+  <h2>The Proposal Lifecycle</h2>
+  <div class="flow" style="margin:1.5rem 0;">
+    <div class="flow-step">1. DRAFT</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">2. SUBMIT</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">3. VOTE<br/><span class="sub">7 days</span></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">4. FINALISE</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step amber">5. TIMELOCK<br/><span class="sub">7 days ⚠️</span></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step" style="border-color:var(--green);">6. EXECUTE ✅</div>
+  </div>
+  <div class="grid3">
+    <div class="box"><h3>1. Draft</h3><p>Title, description, full document → IPFS CID</p></div>
+    <div class="box"><h3>2. Submit</h3><pre style="font-size:0.75rem;"><code>createProposal(
+  TYPE, guild, quadratic,
+  title, description,
+  ipfsHash, target,
+  amount, token
+)</code></pre></div>
+    <div class="box"><h3>3–4. Vote & Finalise</h3><p>Open 7-day window. Anyone calls <code>finaliseProposal()</code> after close.</p></div>
+    <div class="box amber"><h3>5. Timelock</h3><p>Treasury proposals only. 7 full days visible to community before execution.</p></div>
+    <div class="box green"><h3>6. Execute</h3><p>Contract enforces outcome automatically. Permanent record on Polygon.</p></div>
+    <div class="box">
+      <h3>States</h3>
+      <p class="sub">ACTIVE → PASSED / REJECTED → TIMELOCK → EXECUTED / CANCELLED</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ SLIDE 8 ══ Four Proposal Types ════════════════════════════ -->
+<section class="slide" id="s8">
+  <h2>The Four Proposal Types</h2>
+  <div class="grid2" style="gap:1.2rem;">
+    <div class="box">
+      <span class="tag">TYPE 0</span> <span style="font-size:1.2rem;">⚖️</span>
+      <h3 style="margin-top:0.5rem;">Standard</h3>
+      <hr class="rule" />
+      <p>Operational decisions: hiring, partnerships, events</p>
+      <p class="sub" style="margin-top:0.4rem;">Simple majority · 7-day vote · No timelock</p>
+    </div>
+    <div class="box">
+      <span class="tag">TYPE 1</span> <span style="font-size:1.2rem;">💰</span>
+      <h3 style="margin-top:0.5rem;">Treasury</h3>
+      <hr class="rule" />
+      <p>Any transfer of community funds</p>
+      <p class="sub" style="margin-top:0.4rem;">Majority vote + 3/5 council multisig + 7-day timelock + 2.5% auto-zakat</p>
+    </div>
+    <div class="box" style="border-color:var(--amber);">
+      <span class="tag amber">TYPE 2</span> <span style="font-size:1.2rem;">📜</span>
+      <h3 style="margin-top:0.5rem;">Constitutional</h3>
+      <hr class="rule" />
+      <p>Changes to governance rules, council parameters</p>
+      <p class="sub" style="margin-top:0.4rem;"><strong>67% supermajority required.</strong> Cannot be rushed. Cannot be gamed.</p>
+    </div>
+    <div class="box" style="border-color:var(--accent);background:var(--soft);">
+      <span class="tag" style="background:#FFCDD2;color:var(--accent);border-color:var(--accent);">TYPE 3</span> <span style="font-size:1.2rem;">🚨</span>
+      <h3 style="margin-top:0.5rem;" style="color:var(--accent);">Emergency</h3>
+      <hr class="rule" />
+      <p>Critical infrastructure, life-safety decisions only</p>
+      <p class="sub" style="margin-top:0.4rem;">Council-initiated · 24-hour community ratification · 3/5 council multisig</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ SLIDE 9 ══ Real-World Example ═════════════════════════════ -->
+<section class="slide" id="s9">
+  <h2>Real-World Example: HealthGuild Purchase</h2>
+  <p class="sub" style="margin-bottom:1rem;font-style:italic;">Scenario: HealthGuild requests 3 ETH for medical supplies</p>
+  <div class="timeline">
+    <div class="tl-row"><div class="tl-num">1</div><div><p>Guild lead uploads full documentation to IPFS → gets CID</p></div></div>
+    <div class="tl-row"><div class="tl-num">2</div><div><pre style="font-size:0.78rem;"><code>createProposal(TYPE_TREASURY, GUILD_HEALTH, false, "Medical Supplies",
+  "...", "QmCID...", supplier, 3e18, address(0))</code></pre></div></div>
+    <div class="tl-row"><div class="tl-num">3</div><div><p>Community votes 7 days → <strong>63% FOR</strong></p></div></div>
+    <div class="tl-row"><div class="tl-num">4</div><div><p><code>finaliseProposal(1)</code> → STATE: <span class="tag amber">TIMELOCK</span></p></div></div>
+    <div class="tl-row"><div class="tl-num">5</div><div><p>Council[0], Council[1], Council[2] each call <code>councilConfirm(1)</code></p></div></div>
+    <div class="tl-row"><div class="tl-num">6</div><div><p>7-day timelock expires → <code>executeProposal(1)</code></p></div></div>
+  </div>
+  <div class="box" style="margin-top:1rem;background:var(--soft);">
+    <div style="display:flex;gap:2rem;flex-wrap:wrap;">
+      <div><span class="sub">Supplier receives</span><div class="stat-big" style="font-size:1.6rem;">2.925 ETH</div></div>
+      <div><span class="sub">Zakat pool (2.5%)</span><div class="stat-big" style="font-size:1.6rem;color:var(--green);">0.075 ETH</div></div>
+      <div><span class="sub">On-chain record</span><div class="stat-big" style="font-size:1.6rem;color:var(--dim);">PERMANENT</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ SLIDE 10 ══ Core Council Roles ════════════════════════════ -->
+<section class="slide" id="s10">
+  <h2>Core Council Roles &amp; Accountability</h2>
+  <div class="grid2">
+    <div class="col">
+      <h3>Powers</h3>
+      <div class="box green"><p>✅ Initiate Emergency proposals</p></div>
+      <div class="box green"><p>✅ Confirm/block treasury transfers (3-of-5)</p></div>
+      <div class="box green"><p>✅ Set guild leads</p></div>
+      <div class="box green"><p>✅ Register cross-DAO partners</p></div>
+    </div>
+    <div class="col">
+      <h3>Constraints</h3>
+      <div class="box"><p>⏱ <strong>180-day term limits</strong> — auto-expire, must re-earn seat</p></div>
+      <div class="box"><p>🤝 <strong>Cannot act unilaterally</strong> on any treasury decision</p></div>
+      <div class="box"><p>👁 <strong>Full on-chain voting record</strong> visible to all</p></div>
+      <div class="box" style="border-color:var(--accent);background:var(--soft);">
+        <h3 style="color:var(--accent);">🔴 RECALL MECHANISM</h3>
+        <p>Any $MARS holder can initiate recall.<br/>50%+1 community majority = immediate removal.<br/><strong>No immunity. No protection.</strong></p>
+        <pre style="margin-top:0.5rem;font-size:0.75rem;"><code>initiateRecall(seatIndex) // start it
+voteRecall(recallId, true) // vote to remove
+finaliseRecall(recallId)   // execute if passed</code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ SLIDE 11 ══ Accountability Mechanisms ═════════════════════ -->
+<section class="slide" id="s11">
+  <h2>Council Accountability Mechanisms</h2>
+  <div class="grid3">
+    <div class="col">
+      <div class="box">
+        <h3>1. Voting Record</h3>
+        <p>Every vote permanently on-chain.</p>
+        <pre style="margin-top:0.5rem;font-size:0.75rem;"><code>councilSeats[i]
+  .proposalsVoted
+  .proposalsSponsored</code></pre>
+        <p class="sub" style="margin-top:0.4rem;">Zero hiding. Zero deniability.</p>
+      </div>
+    </div>
+    <div class="col">
+      <div class="box">
+        <h3>2. Term Limits</h3>
+        <p>Automatic expiry enforced in contract.</p>
+        <pre style="margin-top:0.5rem;font-size:0.75rem;"><code>councilSeats[i].termEnd
+// block.timestamp + 180 days
+// No manual extension
+// Re-election required</code></pre>
+      </div>
+    </div>
+    <div class="col">
+      <div class="box" style="border-color:var(--accent);">
+        <h3>3. Recall Vote</h3>
+        <p>Any holder initiates. 7-day vote. 50%+1 removes.</p>
+        <pre style="margin-top:0.5rem;font-size:0.75rem;"><code>emit RecallVoteStarted(
+  recallId, seatIndex
+);
+// → CouncilMemberRemoved
+//   if threshold met</code></pre>
+      </div>
+    </div>
+  </div>
+  <div class="box" style="margin-top:1rem;background:var(--soft);">
+    <p style="text-align:center;font-weight:bold;">
+      The community can always take its power back. This is not optional. It is architecture.
+    </p>
+  </div>
+</section>
+
+<!-- ══ SLIDE 12 ══ Five Guilds ════════════════════════════════════ -->
+<section class="slide" id="s12">
+  <h2>The Five Specialized Guilds</h2>
+  <div class="grid5" style="align-items:start;">
+    <div class="box" style="text-align:center;">
+      <div style="font-size:2rem;">🔧</div>
+      <h3>TechGuild</h3>
+      <p class="sub">AI · Sensors · Robotics · Life support</p>
+    </div>
+    <div class="box" style="text-align:center;">
+      <div style="font-size:2rem;">🌱</div>
+      <h3>AgriGuild</h3>
+      <p class="sub">Food production · Hydroponics · Drone routing · Surplus</p>
+    </div>
+    <div class="box" style="text-align:center;">
+      <div style="font-size:2rem;">💊</div>
+      <h3>HealthGuild</h3>
+      <p class="sub">Medical protocols · Mental wellness · Biometrics</p>
+    </div>
+    <div class="box" style="text-align:center;">
+      <div style="font-size:2rem;">📚</div>
+      <h3>EduGuild</h3>
+      <p class="sub">Knowledge archive · Youth programs · Skills transfer</p>
+    </div>
+    <div class="box" style="text-align:center;">
+      <div style="font-size:2rem;">⚖️</div>
+      <h3>CivicsGuild</h3>
+      <p class="sub">Law · Ethics · Dispute resolution · Community standards</p>
+    </div>
+  </div>
+  <div class="box" style="margin-top:1rem;">
+    <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+      <div>
+        <pre style="font-size:0.78rem;"><code>// Join a guild (requires $MARS)
+dao.joinGuild(GUILD_TECH); // 0
+dao.joinGuild(GUILD_AGRI); // 1
+dao.joinGuild(GUILD_HEALTH); // 2
+dao.joinGuild(GUILD_EDU); // 3
+dao.joinGuild(GUILD_CIVICS); // 4</code></pre>
+      </div>
+      <div>
+        <p>Expertise guides proposals.<br/>Community decides outcomes.<br/><strong>Power stays distributed.</strong></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ SLIDE 13 ══ Guild Incentives ══════════════════════════════ -->
+<section class="slide" id="s13">
+  <h2>Guild Incentive Structure</h2>
+  <div class="grid2">
+    <div class="flywheel">
+      <div class="fw-row">
+        <div class="fw-box">VOTE</div>
+        <div class="fw-arrow">→</div>
+        <div class="fw-box">EARN $MARS</div>
+        <div class="fw-arrow">→</div>
+        <div class="fw-box">MORE WEIGHT</div>
+      </div>
+      <div class="fw-row">
+        <div class="fw-arrow" style="transform:rotate(90deg);">↑</div>
+        <div style="width:10rem;"></div>
+        <div class="fw-arrow" style="transform:rotate(90deg);">↓</div>
+      </div>
+      <div class="fw-row">
+        <div class="fw-box">BETTER OUTCOMES</div>
+        <div class="fw-arrow">←</div>
+        <div class="fw-box">BETTER PROPOSALS</div>
+        <div class="fw-arrow">←</div>
+        <div class="fw-box">MORE RESPONSIBILITY</div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="box">
+        <h3>On-Chain Guild Stats</h3>
+        <pre style="font-size:0.78rem;"><code>guilds[id].proposalsSubmitted
+guilds[id].memberCount
+guilds[id].rewardBalance</code></pre>
+      </div>
+      <div class="box">
+        <h3>Participation Reward</h3>
+        <pre style="font-size:0.78rem;"><code>// Set by DAO governance vote:
+dao.setParticipationReward(
+  ethers.parseEther("1") // 1 MARS per vote
+);
+participationRewards[voter]</code></pre>
+      </div>
+      <div class="box" style="background:var(--soft);">
+        <p><strong>The incentive structure IS the governance structure.</strong> They cannot be separated.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ SLIDE 14 ══ Cross-DAO Governance ══════════════════════════ -->
+<section class="slide" id="s14">
+  <h2>Cross-DAO Governance &amp; Interplanetary Coordination</h2>
+  <div class="grid2">
+    <div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:0.5rem;padding:1rem;">
+        <div class="box" style="text-align:center;width:200px;">VinelandEternal ScrollVerse<br/><span class="tag green">LIVE</span></div>
+        <div style="font-size:1.5rem;color:var(--title);">│</div>
+        <div style="display:flex;gap:1.5rem;align-items:center;">
+          <div class="box" style="text-align:center;border-width:2px;">MARS DAO<br/><span class="tag">Core Hub</span></div>
+          <div style="display:flex;flex-direction:column;gap:0.4rem;">
+            <div class="box" style="font-size:0.8rem;border-color:var(--dim);color:var(--dim);">SolarDAO<br/><span style="font-size:0.7rem;">(future)</span></div>
+            <div class="box" style="font-size:0.8rem;border-color:var(--dim);color:var(--dim);">MoonDAO<br/><span style="font-size:0.7rem;">(future)</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="box">
+        <h3>Registration</h3>
+        <pre style="font-size:0.78rem;"><code>registerExternalDAO(
+  "SolarDAO",
+  solarDaoAddress
+);
+// emit ExternalDAORegistered(
+//   id, "SolarDAO", addr
+// )</code></pre>
+      </div>
+      <div class="box green">
+        <h3>Live Now</h3>
+        <p>$MIRROR holders already participate as secondary voters in Mars DAO. The federation is active.</p>
+      </div>
+      <div class="box">
+        <h3>Future Protocols</h3>
+        <ul class="checklist">
+          <li>Interplanetary resource compacts</li>
+          <li>Cross-DAO emergency coordination</li>
+          <li>Federated constitutional proposals</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ SLIDE 15 ══ Governance Security ═══════════════════════════ -->
+<section class="slide" id="s15">
+  <h2>Governance Security</h2>
+  <table class="threat-table">
+    <thead>
+      <tr><th>Attack Vector</th><th>Defense Mechanism</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Sybil Attack<br/><span class="sub">Many fake wallets</span></td>
+        <td>Weight ∝ $MARS held. Must fund every wallet. Prohibitively expensive at scale.</td>
+      </tr>
+      <tr>
+        <td>Whale Dominance<br/><span class="sub">100× tokens → control</span></td>
+        <td>Quadratic voting: 100× tokens = 10× votes. Large holders heard, small holders protected.</td>
+      </tr>
+      <tr>
+        <td>Flash Loan Attack<br/><span class="sub">Borrow → vote → repay</span></td>
+        <td>Balance at vote time counts. Flash loans repay before vote registers. Zero effect.</td>
+      </tr>
+      <tr>
+        <td>Council Capture<br/><span class="sub">Compromise the 5</span></td>
+        <td>3-of-5 multisig + 7-day timelock + community recall. Must compromise 3 independently.</td>
+      </tr>
+      <tr>
+        <td>Governance Fatigue<br/><span class="sub">Nobody votes</span></td>
+        <td>Participation rewards make apathy economically irrational. Vote → earn $MARS.</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ══ SLIDE 16 ══ Anti-Manipulation ═════════════════════════════ -->
+<section class="slide" id="s16">
+  <h2>Anti-Manipulation Measures</h2>
+  <div class="grid3">
+    <div class="box">
+      <h3>🔮 Quadratic Voting</h3>
+      <pre style="font-size:0.75rem;"><code>// weight = √(marsBalance)
+//        + √(mirrorBalance/10)
+
+dao.votingPower(
+  voter,
+  true // quadratic = true
+);</code></pre>
+      <p class="sub" style="margin-top:0.4rem;">Large holders heard. Small holders protected.</p>
+    </div>
+    <div class="box">
+      <h3>⏱ 7-Day Timelock</h3>
+      <pre style="font-size:0.75rem;"><code>executionAfter =
+  block.timestamp
+  + TREASURY_TIMELOCK;
+// = 7 days
+// Every treasury move
+// telegraphed in advance</code></pre>
+      <p class="sub" style="margin-top:0.4rem;">Community can see it coming and respond.</p>
+    </div>
+    <div class="box" style="border-color:var(--accent);">
+      <h3>🔒 Immutable Fee Rates</h3>
+      <pre style="font-size:0.75rem;"><code>// Compile-time constants:
+uint256 public constant
+  ZAKAT_BPS = 250; // 2.5%
+
+// NO function can change this.
+// EVER.
+// This is the covenant.</code></pre>
+      <p class="sub" style="margin-top:0.4rem;">Zero governance attack surface on fees.</p>
+    </div>
+  </div>
+  <div class="box" style="margin-top:1rem;background:var(--soft);">
+    <p style="text-align:center;font-weight:bold;font-size:1rem;">
+      CodeQL security scan: <span style="color:var(--green);">0 alerts</span> · Test coverage: <span style="color:var(--green);">all critical paths</span> · Third-party audit: Phase 2 roadmap
+    </p>
+  </div>
+</section>
+
+<!-- ══ SLIDE 17 ══ Health Metrics Dashboard ══════════════════════ -->
+<section class="slide" id="s17">
+  <h2>Governance Health Metrics</h2>
+  <p style="margin-bottom:1rem;"><code>dao.healthMetrics()</code> — live on-chain snapshot, visible to any address, any time.</p>
+  <div class="dashboard">
+    <div class="dash-cell">
+      <div class="dash-label">Total Proposals</div>
+      <div class="dash-value">–</div>
+      <div class="sub">totalProposals</div>
+    </div>
+    <div class="dash-cell">
+      <div class="dash-label">Proposals Passed</div>
+      <div class="dash-value" style="color:var(--green);">–</div>
+      <div class="sub">totalProposalsPassed</div>
+    </div>
+    <div class="dash-cell">
+      <div class="dash-label">Proposals Rejected</div>
+      <div class="dash-value" style="color:var(--accent);">–</div>
+      <div class="sub">totalProposalsRejected</div>
+    </div>
+    <div class="dash-cell">
+      <div class="dash-label">Pass Rate</div>
+      <div class="dash-value">–%</div>
+      <div class="sub">passRate in basis points</div>
+    </div>
+    <div class="dash-cell">
+      <div class="dash-label">Total Votes Cast</div>
+      <div class="dash-value">–</div>
+      <div class="sub">totalVotesCast</div>
+    </div>
+    <div class="dash-cell">
+      <div class="dash-label">Zakat Accumulated</div>
+      <div class="dash-value" style="color:var(--green);">–</div>
+      <div class="sub">zakatAccumulated (wei)</div>
+    </div>
+  </div>
+  <div class="box" style="margin-top:1rem;background:var(--soft);">
+    <p style="text-align:center;"><strong>VISIBLE TO ANYONE. UPDATED IN REAL TIME. NO QUARTERLY REPORT NEEDED.</strong></p>
+  </div>
+</section>
+
+<!-- ══ SLIDE 18 ══ Governance Roadmap ════════════════════════════ -->
+<section class="slide" id="s18">
+  <h2>Governance Roadmap</h2>
+  <div class="grid4">
+    <div class="box" style="border-width:2px;background:var(--soft);">
+      <span class="tag">Phase 1 — NOW</span>
+      <h3 style="margin-top:0.5rem;">Foundation</h3>
+      <ul class="checklist" style="font-size:0.85rem;margin-top:0.5rem;">
+        <li>Deploy MarsToken + MarsDAO (Polygon)</li>
+        <li>Seat founding council</li>
+        <li>Distribute $MARS</li>
+        <li>First proposals submitted</li>
+      </ul>
+    </div>
+    <div class="box">
+      <span class="tag amber">Phase 2 — Q3 2026</span>
+      <h3 style="margin-top:0.5rem;">Growth</h3>
+      <ul class="checklist" style="font-size:0.85rem;margin-top:0.5rem;">
+        <li>Guild leads elected</li>
+        <li>First treasury proposal</li>
+        <li>Cross-DAO registration live</li>
+        <li>First recall election</li>
+      </ul>
+    </div>
+    <div class="box">
+      <span class="tag" style="background:#E8EAF6;border-color:#3F51B5;color:#3F51B5;">Phase 3 — 2027</span>
+      <h3 style="margin-top:0.5rem;">Expansion</h3>
+      <ul class="checklist" style="font-size:0.85rem;margin-top:0.5rem;">
+        <li>Federation with 3+ DAOs</li>
+        <li>Constitutional amendments</li>
+        <li>Health dashboard open-sourced</li>
+        <li>AR/VR governance interface</li>
+      </ul>
+    </div>
+    <div class="box" style="border-color:var(--accent);">
+      <span class="tag" style="background:#FFCDD2;border-color:var(--accent);color:var(--accent);">Phase 4 — MARS</span>
+      <h3 style="margin-top:0.5rem;">The Long Game</h3>
+      <ul class="checklist" style="font-size:0.85rem;margin-top:0.5rem;">
+        <li>Colony autonomous operation</li>
+        <li>Earth as federated partner</li>
+        <li>Interplanetary protocol active</li>
+        <li>Zero Earth control needed</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ══ SLIDE 19 ══ Real-World Impact ═════════════════════════════ -->
+<section class="slide" id="s19">
+  <h2>Real-World Impact</h2>
+  <div class="grid2">
+    <div class="col">
+      <h3>Today — Vineland, NJ</h3>
+      <div class="box">
+        <p><strong>VinelandEternal Cosmic Co-Op</strong></p>
+        <ul style="list-style:none;margin-top:0.4rem;">
+          <li>🌱 IoT microgreens production</li>
+          <li>🚁 Drone surplus routing algorithm</li>
+          <li>💰 $MIRROR dividend distribution</li>
+          <li>🕋 Zakat auto-funded on every transfer</li>
+        </ul>
+      </div>
+      <div class="box" style="background:var(--soft);">
+        <h3>Grants Pipeline: $250,000+</h3>
+        <p class="sub">SCBGP · Northeast SARE · SADC<br/>WA SCBGP · OR SCBGP · CA CDFA</p>
+      </div>
+      <div class="box">
+        <h3>Patents In Progress</h3>
+        <p class="sub">IoT Sensor Array · Drone Grid Optimizer · AR Harvest Visor</p>
+      </div>
+    </div>
+    <div class="col">
+      <h3>Tomorrow — Mars</h3>
+      <div class="box" style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:2rem;background:var(--soft);">
+        <div style="font-size:3rem;">🚀</div>
+        <div class="stat-big" style="margin:0.5rem 0;">10,000</div>
+        <p>settlers, self-governing</p>
+        <hr class="rule" style="width:80%;margin:0.8rem auto;" />
+        <p><strong>Zero corruption possible</strong><br/>Fully transparent<br/>Fully automated<br/>Fully human</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ SLIDE 20 ══ The Future We're Building ═════════════════════ -->
+<section class="slide dark" id="s20">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:2rem;">
+    <p class="vision-text">
+      2047. Olympus Mons Colony.<br/><br/>
+      A young settler submits a proposal<br/>
+      to expand the hydroponic gardens.<br/><br/>
+      <span class="vision-line">She doesn't ask permission.</span><br/>
+      <span class="vision-line">She doesn't beg a council member.</span><br/>
+      <span class="vision-line">She doesn't worry about corruption.</span><br/><br/>
+      She just... governs.<br/>
+      As an equal. As a citizen.<br/><br/>
+      ──────────────────────<br/><br/>
+      <em>This is what we're building.</em><br/>
+      And it starts today.<br/>
+      In Vineland, NJ.<br/>
+      On the Polygon blockchain.<br/>
+      With the next proposal you submit.
+    </p>
+  </div>
+</section>
+
+<!-- ══ SLIDE 21 ══ Call to Action ════════════════════════════════ -->
+<section class="slide" id="s21">
+  <h2>Call to Action</h2>
+  <ul class="cta-list">
+    <li>
+      <div class="cta-num">1</div>
+      <div>
+        <strong>GET $MARS</strong> — Visit <a href="https://scrollport-xkjtdnvi.manus.space" style="color:var(--title);">scrollport-xkjtdnvi.manus.space</a>. Acquire tokens. Become a governor.
+      </div>
+    </li>
+    <li>
+      <div class="cta-num">2</div>
+      <div>
+        <strong>JOIN A GUILD</strong> — Call <code>joinGuild(guildId)</code> on MarsDAO. Contribute in your domain of expertise.
+      </div>
+    </li>
+    <li>
+      <div class="cta-num">3</div>
+      <div>
+        <strong>VOTE</strong> — Every proposal deserves your participation. Your vote earns you more $MARS.
+      </div>
+    </li>
+    <li>
+      <div class="cta-num">4</div>
+      <div>
+        <strong>BUILD</strong> — Submit proposals that improve the ecosystem. The DAO exists to evaluate and implement good ideas.
+      </div>
+    </li>
+    <li>
+      <div class="cta-num">5</div>
+      <div>
+        <strong>SHARE</strong> — This only works at scale. Every new participant makes it stronger, more resilient, more just.
+      </div>
+    </li>
+  </ul>
+</section>
+
+<!-- ══ SLIDE 22 ══ Thank You & Questions ═════════════════════════ -->
+<section class="slide dark" id="s22">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:1.5rem;padding:2rem;">
+    <div style="font-size:2.5rem;">🕋</div>
+    <p class="vision-text" style="font-size:clamp(1rem,2vw,1.4rem);">
+      "Power can be written in code.<br/>
+      Not held in an office.<br/>
+      Not concentrated in a boardroom.<br/>
+      Written. In code. Distributed. Immutable."
+    </p>
+    <div style="display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;">
+      <div class="box dark-fill" style="padding:0.6rem 1.2rem;">
+        🌐 scrollport-xkjtdnvi.manus.space
+      </div>
+      <div class="box dark-fill" style="padding:0.6rem 1.2rem;">
+        📁 github.com/chaishillomnitech1
+      </div>
+      <div class="box dark-fill" style="padding:0.6rem 1.2rem;">
+        ⛓ MarsDAO.sol · Polygon Mainnet
+      </div>
+    </div>
+    <div style="margin-top:1rem;">
+      <h2 style="font-size:3rem;letter-spacing:0.1em;">QUESTIONS?</h2>
+      <p style="color:#B0BEC5;margin-top:0.5rem;">Allāhu Akbar × ∞ · KUN FAYAKŪN</p>
+    </div>
+  </div>
+</section>
+
+</div><!-- #deck -->
+
+<!-- ── Navigation ──────────────────────────────────────────────── -->
+<div id="nav">
+  <button class="nav-btn" id="prevBtn" onclick="navigate(-1)" disabled>◀ PREV</button>
+  <div id="slide-counter">1 / 22</div>
+  <button class="nav-btn" id="nextBtn" onclick="navigate(1)">NEXT ▶</button>
+</div>
+
+<script>
+  const TOTAL = 22;
+  let current = 1;
+
+  function navigate(dir) {
+    const prev = current;
+    current = Math.max(1, Math.min(TOTAL, current + dir));
+    if (current === prev) return;
+
+    document.getElementById('s' + prev).classList.remove('active');
+    document.getElementById('s' + current).classList.add('active');
+
+    document.getElementById('slide-counter').textContent = current + ' / ' + TOTAL;
+    document.getElementById('prevBtn').disabled = current === 1;
+    document.getElementById('nextBtn').disabled = current === TOTAL;
+    document.getElementById('progress').style.width = ((current / TOTAL) * 100) + '%';
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+      e.preventDefault();
+      navigate(1);
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      navigate(-1);
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      while (current > 1) navigate(-1);
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      while (current < TOTAL) navigate(1);
+    }
+  });
+
+  // Touch swipe support
+  let touchStartX = 0;
+  document.getElementById('deck').addEventListener('touchstart', e => {
+    touchStartX = e.changedTouches[0].screenX;
+  }, { passive: true });
+  document.getElementById('deck').addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].screenX - touchStartX;
+    if (Math.abs(dx) > 40) navigate(dx < 0 ? 1 : -1);
+  }, { passive: true });
+
+  // Initial progress bar
+  document.getElementById('progress').style.width = ((1 / TOTAL) * 100) + '%';
+</script>
+
+</body>
+</html>

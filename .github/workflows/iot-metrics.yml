@@ -1,0 +1,156 @@
+name: IoT Metrics — Proof-of-Life Tracking
+
+on:
+  push:
+    paths:
+      - "iot-agape/**"
+      - ".github/workflows/iot-metrics.yml"
+  schedule:
+    # Every 15 minutes during Vineland growing hours (06:00–20:00 UTC)
+    - cron: "*/15 6-20 * * *"
+  workflow_dispatch:
+    inputs:
+      tray_id:
+        description: "Specific tray ID to check (leave blank for all)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  # -------------------------------------------------------------------------
+  # 1. Validate IoT module syntax and imports
+  # -------------------------------------------------------------------------
+  validate-iot:
+    name: Validate IoT Module
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install flask paho-mqtt flake8
+
+      - name: Lint sensor-dashboard.py
+        run: flake8 iot-agape/sensor-dashboard.py --max-line-length=100 --ignore=E501,W503
+
+      - name: Validate SQL schema
+        run: |
+          sqlite3 /tmp/agape-metrics-test.db < iot-agape/agape-ledger.sql
+          COUNT=$(sqlite3 /tmp/agape-metrics-test.db "SELECT COUNT(*) FROM trays;")
+          echo "Seed trays: $COUNT"
+          [ "$COUNT" -eq 5 ] || (echo "Expected 5 seed trays, got $COUNT" && exit 1)
+
+  # -------------------------------------------------------------------------
+  # 2. Run Proof-of-Life metric collection
+  # -------------------------------------------------------------------------
+  collect-metrics:
+    name: Collect Proof-of-Life Metrics
+    runs-on: ubuntu-latest
+    needs: validate-iot
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install flask paho-mqtt
+
+      - name: Collect and report tray metrics
+        run: |
+          python -c "
+          import sys, json, importlib.util
+
+          spec = importlib.util.spec_from_file_location('sensor_dashboard', 'iot-agape/sensor-dashboard.py')
+          m = importlib.util.module_from_spec(spec)
+          sys.modules['sensor_dashboard'] = m
+          spec.loader.exec_module(m)
+
+          tray_filter = '${{ github.event.inputs.tray_id }}'
+
+          client = m.app.test_client()
+
+          if tray_filter:
+              resp = client.get(f'/api/agape/{tray_filter}')
+              trays = [resp.get_json()] if resp.status_code == 200 else []
+          else:
+              trays = client.get('/api/agape').get_json()
+
+          print(f'\n=== Proof-of-Life Report ({len(trays)} tray(s)) ===')
+          for tray in trays:
+              status = '🟢 READY' if tray.get('agape_value', 0) >= 90 else '🟡 GROWING' if tray.get('agape_value', 0) >= 70 else '🔴 NEEDS ATTENTION'
+              print(f\"  {tray['tray_id']:8} | {tray.get('crop','?'):15} | Water:{tray.get('water',0):3}% Soil:{tray.get('soil',0):3}% Sun:{tray.get('sun',0):3}% | Agape:{tray.get('agape_value',0):3} | {status}\")
+
+          surplus = [t for t in trays if t.get('agape_value', 0) >= 90]
+          print(f'\nSurplus trays ready for harvest/redistribution: {len(surplus)}/{len(trays)}')
+
+          # Write metrics artifact
+          with open('/tmp/pol-metrics.json', 'w') as f:
+              json.dump({'trays': trays, 'surplus_count': len(surplus)}, f, indent=2)
+          "
+
+      - name: Upload metrics artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pol-metrics-${{ github.run_number }}
+          path: /tmp/pol-metrics.json
+          retention-days: 30
+
+  # -------------------------------------------------------------------------
+  # 3. Alert on low-agape trays (post a workflow summary)
+  # -------------------------------------------------------------------------
+  agape-summary:
+    name: Agape Summary Report
+    runs-on: ubuntu-latest
+    needs: collect-metrics
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install flask paho-mqtt
+
+      - name: Generate GitHub Step Summary
+        run: |
+          python -c "
+          import sys, importlib.util
+
+          spec = importlib.util.spec_from_file_location('sensor_dashboard', 'iot-agape/sensor-dashboard.py')
+          m = importlib.util.module_from_spec(spec)
+          sys.modules['sensor_dashboard'] = m
+          spec.loader.exec_module(m)
+
+          client = m.app.test_client()
+          trays = client.get('/api/agape').get_json()
+          surplus = [t for t in trays if t.get('agape_value', 0) >= 90]
+
+          lines = [
+              '## 🌱 VinelandEternal — Proof-of-Life Metrics',
+              '',
+              f'**Trays Monitored:** {len(trays)}  ',
+              f'**Surplus Ready:** {len(surplus)}  ',
+              '',
+              '| Tray | Crop | Water | Soil | Sun | Agape | Status |',
+              '|------|------|-------|------|-----|-------|--------|',
+          ]
+          for t in trays:
+              av = t.get('agape_value', 0)
+              status = '🟢 Ready' if av >= 90 else '🟡 Growing' if av >= 70 else '🔴 Needs Attention'
+              lines.append(f\"| {t['tray_id']} | {t.get('crop','?')} | {t.get('water',0)}% | {t.get('soil',0)}% | {t.get('sun',0)}% | {av} | {status} |\")
+
+          print('\n'.join(lines))
+          " >> "\$GITHUB_STEP_SUMMARY"

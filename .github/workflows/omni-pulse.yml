@@ -1,33 +1,47 @@
-name: Omni-Pulse Report
+name: Omni-Pulse — Daily Agape Chronicle
 
 on:
   schedule:
-    - cron: "0 0 * * *" # Trigger every 24 hours
+    # Every day at 05:00 UTC (Vineland Dawn Pulse)
+    - cron: "0 5 * * *"
+  workflow_dispatch:
+
+# Write access is required so the workflow can commit the daily chronicle.
+permissions:
+  contents: write
 
 jobs:
-  generate-report:
+  chronicle:
+    name: Generate Daily Chronicle
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+        with:
+          # Use the built-in GITHUB_TOKEN so the auto-commit triggers
+          # downstream workflows normally.
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.9'
+          python-version: "3.11"
+          cache: pip
 
-      - name: Install OpenAI client
-        run: pip install openai
+      - name: Install dependencies
+        run: pip install flask paho-mqtt
 
-      - name: Generate Daily Decree
+      - name: Generate daily chronicle
+        run: python docs/chronicles/generate_chronicle.py
+
+      - name: Commit and push chronicle
         run: |
-          python -c "import openai; openai.api_key = '<YOUR_API_KEY>'; response = openai.Completion.create(model='text-davinci-003', prompt='Summarize today\'s mission status from the ScrollSoul', max_tokens=150); print(response['choices'][0]['text']) > docs/chronicles/daily_decree.md"
-
-      - name: Commit and Push
-        run: |
-          git config --global user.name 'github-actions'
-          git config --global user.email 'actions@github.com'
-          git add docs/chronicles/daily_decree.md
-          git commit -m 'Add Daily Decree'
-          git push
+          git config user.name  "omni-pulse[bot]"
+          git config user.email "omni-pulse@vinelandeternal.local"
+          git add docs/chronicles/
+          if git diff --staged --quiet; then
+            echo "Chronicle already up-to-date — nothing to commit."
+          else
+            git commit -m "chore(chronicle): daily agape state $(date -u +%Y-%m-%d)"
+            git push
+          fi

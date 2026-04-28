@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mars DAO — Tokenized Governance Structure</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    /* ── RESET & BASE ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --red:    #B71C1C;
+      --accent: #FF5252;
+      --dark:   #263238;
+      --light:  #ECEFF1;
+      --mid:    #90A4AE;
+      --gold:   #FFD54F;
+    }
+    body {
+      background: #0d0d0d;
+      font-family: 'Courier New', monospace;
+      color: var(--light);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── STAGE ── */
+    #stage {
+      position: relative;
+      width: 1280px;
+      height: 720px;
+      overflow: hidden;
+      box-shadow: 0 0 60px rgba(183,28,28,.6);
+    }
+
+    /* ── SLIDES ── */
+    .slide {
+      position: absolute;
+      inset: 0;
+      width: 1280px;
+      height: 720px;
+      display: none;
+      background: var(--dark);
+      padding: 0;
+    }
+    .slide.active { display: flex; flex-direction: column; }
+
+    /* ── SHARED HEADER STRIP ── */
+    .slide-header {
+      background: var(--red);
+      padding: 14px 40px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-shrink: 0;
+    }
+    .slide-header .icon { font-size: 1.6rem; color: var(--light); }
+    .slide-header h2 {
+      font-family: 'Roboto', sans-serif;
+      font-weight: 900;
+      font-size: 1.55rem;
+      color: var(--light);
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+    .slide-num {
+      margin-left: auto;
+      font-family: 'Roboto', sans-serif;
+      font-size: .85rem;
+      color: rgba(255,255,255,.55);
+      letter-spacing: .1em;
+    }
+
+    /* ── BODY AREA ── */
+    .slide-body {
+      flex: 1;
+      display: grid;
+      padding: 30px 40px;
+      gap: 20px;
+      overflow: hidden;
+    }
+
+    /* ── TYPOGRAPHY ── */
+    h1.hero {
+      font-family: 'Roboto', sans-serif;
+      font-weight: 900;
+      font-size: 3.2rem;
+      line-height: 1.1;
+      color: var(--light);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+    h1.hero span { color: var(--accent); }
+    .sub {
+      font-family: 'Roboto', sans-serif;
+      font-size: 1.1rem;
+      color: var(--mid);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    p, li { font-size: .92rem; line-height: 1.65; color: var(--light); }
+    ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    ul li::before { content: "▸ "; color: var(--accent); }
+    strong { color: var(--accent); font-weight: 700; }
+
+    /* ── CARDS / BOXES ── */
+    .box {
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      padding: 16px 20px;
+      background: rgba(255,82,82,.06);
+    }
+    .box h3 {
+      font-family: 'Roboto', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--accent);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    .grid-2  { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .grid-3  { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; }
+    .grid-4  { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 14px; }
+
+    /* ── STAT BADGE ── */
+    .stat {
+      text-align: center;
+      background: rgba(183,28,28,.18);
+      border: 1px solid var(--red);
+      border-radius: 8px;
+      padding: 18px 12px;
+    }
+    .stat .num {
+      font-family: 'Roboto', sans-serif;
+      font-weight: 900;
+      font-size: 2rem;
+      color: var(--accent);
+    }
+    .stat .label { font-size: .78rem; color: var(--mid); margin-top: 4px; }
+
+    /* ── TIMELINE ── */
+    .timeline { display: flex; gap: 0; align-items: stretch; }
+    .t-step {
+      flex: 1;
+      border: 1px solid var(--accent);
+      border-right: none;
+      padding: 14px 16px;
+      background: rgba(255,82,82,.05);
+      position: relative;
+    }
+    .t-step:last-child { border-right: 1px solid var(--accent); }
+    .t-step .phase {
+      font-family: 'Roboto', sans-serif;
+      font-weight: 900;
+      font-size: .78rem;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 6px;
+    }
+    .t-step p { font-size: .8rem; color: var(--mid); }
+
+    /* ── PILL TAGS ── */
+    .tag {
+      display: inline-block;
+      background: var(--red);
+      color: var(--light);
+      font-family: 'Roboto', sans-serif;
+      font-size: .72rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin: 3px 2px;
+    }
+
+    /* ── ACCENT LINE ── */
+    .divider {
+      height: 3px;
+      background: linear-gradient(90deg, var(--red), var(--accent), transparent);
+      border-radius: 2px;
+      margin: 4px 0 12px;
+    }
+
+    /* ── HERO SLIDE (1) ── */
+    #s1 { background: #0d0d0d; }
+    #s1 .slide-body {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center; gap: 18px;
+    }
+    #s1 .mars-bg {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 900px 600px at 70% 110%, rgba(183,28,28,.25), transparent),
+        radial-gradient(ellipse 500px 500px at 10% 80%, rgba(255,82,82,.08), transparent);
+      pointer-events: none;
+    }
+    #s1 .dao-logo {
+      font-family: 'Roboto', sans-serif;
+      font-size: .85rem;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: .3em;
+      text-transform: uppercase;
+    }
+    #s1 .tagline { font-size: .95rem; color: var(--mid); max-width: 700px; }
+    #s1 .badge-row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 10px; }
+
+    /* ── NETWORK VIZ ── */
+    .network {
+      display: flex; align-items: center; justify-content: center;
+      gap: 0; position: relative;
+    }
+    .node {
+      width: 90px; height: 90px; border-radius: 50%;
+      border: 2px solid var(--accent);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      background: rgba(183,28,28,.2);
+      font-family: 'Roboto', sans-serif;
+      font-size: .68rem; font-weight: 700;
+      color: var(--light); text-align: center;
+      text-transform: uppercase; letter-spacing: .04em;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    .node i { font-size: 1.3rem; color: var(--accent); }
+    .connector { width: 40px; height: 2px; background: var(--accent); flex-shrink: 0; }
+
+    /* ── PROGRESS BAR ── */
+    .bar-wrap { display: flex; align-items: center; gap: 10px; margin: 6px 0; }
+    .bar-label { width: 160px; font-size: .8rem; color: var(--mid); flex-shrink: 0; }
+    .bar-track { flex: 1; height: 10px; background: rgba(255,255,255,.1); border-radius: 5px; }
+    .bar-fill { height: 10px; background: linear-gradient(90deg, var(--red), var(--accent)); border-radius: 5px; }
+    .bar-val { width: 40px; text-align: right; font-size: .8rem; color: var(--accent); }
+
+    /* ── CONTROLS ── */
+    #controls {
+      display: flex; align-items: center; gap: 14px;
+      padding: 12px 0 8px;
+    }
+    .btn {
+      background: var(--red);
+      color: var(--light);
+      border: none; border-radius: 6px;
+      padding: 10px 26px;
+      font-family: 'Roboto', sans-serif;
+      font-weight: 700; font-size: .85rem;
+      letter-spacing: .06em; text-transform: uppercase;
+      cursor: pointer; transition: background .2s;
+    }
+    .btn:hover { background: var(--accent); }
+    .btn:disabled { background: #444; cursor: default; }
+    #progress-text { color: var(--mid); font-size: .82rem; font-family: 'Roboto', sans-serif; }
+    #progress-bar-wrap {
+      flex: 1; height: 4px; background: rgba(255,255,255,.12); border-radius: 2px;
+    }
+    #progress-bar {
+      height: 4px; background: var(--accent); border-radius: 2px; transition: width .3s;
+    }
+
+    /* ── RESPONSIVE SCALE ── */
+    #wrapper {
+      display: flex; flex-direction: column; align-items: center;
+      transform-origin: top center;
+    }
+  </style>
+</head>
+<body>
+
+<div id="wrapper">
+  <div id="stage">
+
+    <!-- ══════════════════════════════════════════════════
+         SLIDE 1 — TITLE
+    ══════════════════════════════════════════════════ -->
+    <div class="slide active" id="s1">
+      <div class="mars-bg"></div>
+      <div class="slide-body">
+        <div class="dao-logo"><i class="fa-solid fa-earth-americas"></i> &nbsp;Mars DAO</div>
+        <h1 class="hero">Tokenized<br /><span>Governance</span><br />Structure</h1>
+        <div class="divider" style="width:340px;"></div>
+        <p class="tagline">
+          A decentralized, blockchain-powered framework for governing humanity's
+          first permanent settlement beyond Earth — transparent, community-driven,
+          and built to last across generations.
+        </p>
+        <div class="badge-row">
+          <span class="tag"><i class="fa-brands fa-ethereum"></i> Polygon Mainnet</span>
+          <span class="tag"><i class="fa-solid fa-coins"></i> $MIRROR Token</span>
+          <span class="tag"><i class="fa-solid fa-shield-halved"></i> DAO Governance</span>
+          <span class="tag"><i class="fa-solid fa-rocket"></i> Mars Settlement</span>
+        </div>
+        <p class="sub" style="margin-top:14px;">22-Slide Presentation &nbsp;·&nbsp; Mars DAO Initiative &nbsp;·&nbsp; 2025</p>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════
+         SLIDE 2 — GOVERNANCE CRISIS CONTEXT
+    ══════════════════════════════════════════════════ -->
+    <div class="slide" id="s2">
+      <div class="slide-header">
+        <i class="fa-solid fa-triangle-exclamation icon"></i>
+        <h2>The Governance Crisis</h2>
+        <span class="slide-num">02 / 22</span>
+      </div>
+      <div class="slide-body" style="grid-template-columns:1fr 1fr; align-content:start;">
+        <div>
+          <p style="color:var(--mid);margin-bottom:12px;">Existing governance models fail at the scale and isolation of Mars colonization.</p>
+          <div class="divider"></div>
+          <ul>
+            <li>Earth-based governments cannot enforce laws 20 minutes away at the speed of light</li>
+            <li>Corporate control creates extractive economies with no democratic accountability</li>
+            <li>No precedent exists for multi-national, multi-corporate, multi-individual settlement governance</li>
+            <li>Resource allocation decisions (water, oxygen, energy) are literally life-or-death</li>
+            <li>Corruption and opacity destroy community trust in closed systems</li>
+          </ul>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div class="stat"><div class="num">20<span style="font-size:1.2rem">min</span></div><div class="label">Avg Earth-Mars Signal Delay</div></div>
+          <div class="stat"><div class="num">0</div><div class="label">Existing Legal Frameworks for Mars</div></div>
+          <div class="stat"><div class="num">∞</div><div class="label">Cost of Governance Failure in Space</div></div>
+          <div class="box">
+            <h3><i class="fa-solid fa-lightbulb"></i> The Solution</h3>
+            <p>Immutable smart contracts on Polygon enforce rules automatically — no central authority required.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════
+         SLIDE 3 — WHY BLOCKCHAIN
+    ══════════════════════════════════════════════════ -->
+    <div class="slide" id="s3">
+      <div class="slide-header">
+        <i class="fa-solid fa-link icon"></i>
+        <h2>Why Blockchain Governance?</h2>
+        <span class="slide-num">03 / 22</span>
+      </div>
+      <div class="slide-body" style="align-content:start;">
+        <p style="color:var(--mid);">Blockchain solves the unique challenges of governing an isolated, multi-stakeholder settlement.</p>
+        <div class="grid-3">
+          <div class="box">
+            <h3><i class="fa-solid fa-eye"></i> Radical Transparency</h3>
+            <p>Every vote, treasury transaction, and proposal is permanently recorded on-chain and auditable by any settler.</p>
+          </div>
+          <div class="box">
+            <h3><i class="fa-solid fa-robot"></i> Autonomous Execution</h3>
+            <p>Smart contracts enforce decisions instantly — no bureaucratic delay, no human override, no corruption.</p>
+          </div>
+          <div class="box">
+            <h3><i class="fa-solid fa-globe"></i> Borderless Trust</h3>
+            <p>Participants from any Earth nation or corporate sponsor operate under identical, neutral rules.</p>
+          </div>
+          <div class="box">
+            <h3><i class="fa-solid fa-bolt"></i> Real-Time Response</h3>
+            <p>Emergency proposals can be activated in minutes when life-support or colony security is threatened.</p>
+          </div>
+          <div class="box">
+            <h3><i class="fa-solid fa-shield"></i> Censorship Resistant</h3>
+            <p>No single entity — corporate, governmental, or individual — can unilaterally alter governance rules.</p>
+          </div>
+          <div class="box">
+            <h3><i class="fa-solid fa-handshake"></i> Stakeholder Alignment</h3>
+            <p>Token economics directly align incentives of settlers, investors, and contributors toward colony success.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════
+         SLIDE 4 — THREE-TIER GOVERNANCE
+    ══════════════════════════════════════════════════ -->
+    <div class="slide" id="s4">
+      <div class="slide-header">
+        <i class="fa-solid fa-layer-group icon"></i>
+        <h2>Three-Tier Governance Structure</h2>
+        <span class="slide-num">04 / 22</span>
+      </div>
+      <div class="slide-body" style="align-content:start;">
+        <div class="network" style="margin-bottom:10px;">
+          <div class="node" style="width:110px;height:110px;background:rgba(183,28,28,.4);">
+            <i class="fa-solid fa-crown"></i>TIER 1<br/><span style="font-size:.6rem;color:var(--mid)">Council</span>
+          </div>
+          <div class="connector" style="width:60px;"></div>
+          <div class="node" style="width:110px;height:110px;">
+            <i class="fa-solid fa-users"></i>TIER 2<br/><span style="font-size:.6rem;color:var(--mid)">Guilds</span>
+          </div>
+          <div class="connector" style="width:60px;"></div>
+          <div class="node" style="width:110px;height:110px;">
+            <i class="fa-solid fa-person"></i>TIER 3<br/><span style="font-size:.6rem;color:var(--mid)">Citizens</span>
+          </div>
+        </div>
+        <div class="grid-3">
+          <div class="box">
+            <h3>Tier 1 — Council</h3>
+            <ul>
+              <li>7 elected representatives</li>
+              <li>4-year term limits</li>
+              <li>Emergency veto power</li>
+              <li>Treaty negotiation authority</li>
+              <li>Inter-DAO coordination</li>
+            </ul>
+          </div>
+          <div class="box">
+            <h3>Tier 2 — Guilds</h3>
+            <ul>
+              <li>5 specialized guilds</li>
+              <li>Domain-specific proposals</li>
+              <li>Operational execution</li>
+              <li>Technical expertise input</li>
+              <li>Resource allocation review</li>
+            </ul>
+          </div>
+          <div class="box">
+            <h3>Tier 3 — Citizens</h3>
+            <ul>
+              <li>All $MIRROR token holders</li>
+              <li>Direct proposal voting</li>
+              <li>1 token = 1 vote base</li>
+              <li>Referendum initiation</li>
+              <li>Transparency oversight</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════
+         SLIDE 5 — TOKEN ECONOMICS
+    ══════════════════════════════════════════════════ -->
+    <div class="slide" id="s5">
+      <div class="slide-header">
+        <i class="fa-solid fa-coins icon"></i>
+        <h2>$MIRROR Token Economics</h2>
+        <span class="slide-num">05 / 22</span>
+      </div>
+      <div class="slide-body" style="grid-template-columns:1fr 1fr; align-content:start;">
+        <div>
+          <div class="box" style="margin-bottom:14px;">
+            <h3>Token Supply</h3>
+            <div style="display:flex;gap:20px;flex-wrap:wrap;margin-top:8px;">
+              <div class="stat" style="flex:1"><div class="num">1B</div><div class="label">Total Supply</div></div>
+              <div class="stat" style="flex:1"><div class="num">10yr</div><div class="label">Vesting Schedule</div></div>
+            </div>
+          </div>
+          <div class="box">
+            <h3>Distribution</h3>
+            <div class="bar-wrap"><div class="bar-label">Settler Rewards</div><div class="bar-track"><div class="bar-fill" style="width:35%"></div></div><div class="bar-val">35%</div></div>
+            <div class="bar-wrap"><div class="bar-label">Treasury Reserve</div><div class="bar-track"><div class="bar-fill" style="width:25%"></div></div><div class="bar-val">25%</div></div>
+            <div class="bar-wrap"><div class="bar-label">Founding Contributors</div><div class="bar-track"><div class="bar-fill" style="width:20%"></div></div><div class="bar-val">20%</div></div>
+            <div class="bar-wrap"><div class="bar-label">Public Sale</div><div class="bar-track"><div class="bar-fill" style="width:15%"></div></div><div class="bar-val">15%</div></div>
+            <div class="bar-wrap"><div class="bar-label">Ecosystem Grants</div><div class="bar-track"><div class="bar-fill" style="width:5%"></div></div><div class="bar-val">5%</div></div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div class="box">
+            <h3><i class="fa-solid fa-trophy"></i> Earning Mechanisms</h3>
+            <ul>
+              <li>Completing verified colony work tasks</li>
+              <li>Contributing to approved proposals</li>
+              <li>Guild participation and leadership</li>
+              <li>Cross-DAO collaboration rewards</li>
+              <li>Staking for governance weight</li>
+            </ul>
+          </div>
+          <div class="box">
+            <h3><i class="fa-solid fa-fire"></i> Token Utility</h3>
+            <ul>
+              <li>Governance voting weight</li>
+              <li>Access to colony services</li>
+              <li>Resource allocation credits</li>
+              <li>Inter-DAO exchange medium</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════
+         SLIDE 6 — TREASURY MANAGEMENT
+    ══════════════════════════════════════════════════ -->
+    <div class="slide" id="s6">
+      <div class="slide-header">
+        <i class="fa-solid fa-vault icon"></i>
+        <h2>Treasury Management</h2>
+        <span class="slide-num">06 / 22</span>
+      </div>
+      <div class="slide-body" style="grid-template-columns:1fr 1fr; align-content:start;">
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div class="box">
+            <h3><i class="fa-solid fa-lock"></i> Multi-Sig Security</h3>
+            <p>All treasury transactions require <strong>5-of-9 Council signatures</strong> via Gnosis Safe on Polygon. No single actor can move funds unilaterally.</p>
+          </div>
+          <div class="box">
+            <h3><i class="fa-solid fa-chart-pie"></i> Fund Allocation</h3>
+            <div class="bar-wrap"><div class="bar-label">Infrastructure</div><div class="bar-track"><div class="bar-fill" style="width:40%"></div></div><div class="bar-val">40%</div></div>
+            <div class="bar-wrap"><div class="bar-label">R&amp;D</div><div class="bar-track"><div class="bar-fill" style="width:25%"></div></div><div class="bar-val">25%</div></div>
+            <div class="bar-wrap"><div class="bar-label">Social Programs</div><div class="bar-track"><div class="bar-fill" style="width:20%"></div></div><div class="bar-val">20%</div></div>
+            <div class="bar-wrap"><div class="bar-label">Emergency Reserve</div><div class="bar-track"><div class="bar-fill" style="width:15%"></div></div><div class="bar-val">15%</div></div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div class="box">
+            <h3><i class="fa-solid fa-eye"></i> Transparency Mechanisms</h3>
+            <ul>
+              <li>Real-time on-chain treasury dashboard</li>
+              <li>Monthly automated financial reports</li>
+              <li>Any settler can audit all transactions</li>
+              <li>Automated budget ceiling enforcement</li>
+              <li>Smart contract spending limits per category</li>
+            </ul>
+          </div>
+          <div class="box">
+            <h3><i class="fa-solid fa-exclamation-circle"></i> Emergency Protocol</h3>
+            <p>A <strong>3-of-9 emergency signature</strong> unlocks rapid deployment of reserve funds during colony emergencies — with full audit trail and mandatory 72-hour public review post-action.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════
+         SLIDE 7 — PROPOSAL LIFECYCLE
+    ══════════════════════════════════════════════════ -->
+    <div class="slide" id="s7">
+      <div class="slide-header">
+        <i class="fa-solid fa-diagram-project icon"></i>
+        <h2>Proposal Lifecycle</h2>
+        <span class="slide-num">07 / 22</span>
+      </div>
+      <div class="slide-body" style="align-content:start; gap:14px;">
+        <p style="color:var(--mid);">Every governance decision follows a transparent, community-reviewed lifecycle from idea to execution.</p>
+        <div class="timeline">
+          <div class="t-step">
+            <div class="phase">① Draft</div>
+            <p><strong>Any citizen</strong> submits proposal with title, rationale, cost estimate, and expected outcome. Requires 100 $MIRROR staked.</p>
+          </div>
+          <div class="t-step">
+            <div class="phase">② Review</div>
+            <p>Relevant <strong>Guild</strong> reviews technical feasibility within 7 days. Council may fast-track urgent proposals.</p>
+          </div>
+          <div class="t-step">
+            <div class="phase">③ Debate</div>
+            <p><strong>7-day public comment</strong> period. Amendments can be submitted. Q&amp;A sessions held in colony forums.</p>
+          </div>
+          <div class="t-step">
+            <div class="phase">④ Vote</div>
+            <p><strong>5-day on-chain vote.</strong> Simple majority for standard proposals; 66% supermajority for constitutional changes.</p>
+          </div>
+          <div class="t-step">
+            <div class="phase">⑤ Execute</div>
+            <p>Smart contract <strong>auto-executes</strong> approved proposals. Funds released to designated wallet, tasks assigned.</p>
+          </div>
+          <div class="t-step">
+            <div class="phase">⑥ Review</div>
+            <p><strong>30-day post-implementation</strong> audit. Results published on-chain. Proposer accountability score updated.</p>
+          </div>
+        </div>
+        <div class="grid-4" style="margin-top:4px;">
+          <div class="box"><h3>Quorum</h3><p>Minimum <strong>15%</strong> of circulating tokens must vote for validity.</p></div>
+          <div class="box"><h3>Veto</h3><p>Council can veto with <strong>5-of-7</strong> vote; citizens can override with 75% supermajority.</p></div>
+          <div class="box"><h3>Fast-Track</h3><p>Emergency proposals bypass debate phase; execute in <strong>48 hours</strong>.</p></div>
+          <div class="box"><h3>Stake Return</h3><p>Proposer's stake <strong>refunded</strong> if proposal passes or achieves 10%+ support.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════
+         SLIDE 8 — FOUR PROPOSAL TYPES
+    ══════════════════════════════════════════════════ -->
+    <div class="slide" id="s8">
+      <div class="slide-header">
+        <i class="fa-solid fa-file-contract icon"></i>
+        <h2>Four Proposal Types</h2>
+        <span class="slide-num">08 / 22</span>
+      </div>
+      <div class="slide-body" style="align-content:start;">
+        <div class="grid-2">
+          <div class="box">
+            <h3><i class="fa-solid fa-gavel"></i> Type 1 — Constitutional</h3>
+            <p>Amendments to the Mars DAO charter, voting rules, or fundamental rights of settlers. Requires <strong>66% supermajority</strong> and 30-day deliberation. Most consequential category — shapes the colony's long-term identity.</p>
+            <div style="margin-top:10px;"><span class="tag">Supermajority</span><span class="tag">30-day debate</span><span class="tag">Rare</span></div>
+          </div>
+          <div class="box">
+            <h3><i class="fa-solid fa-money-bill-wave"></i> Type 2 — Treasury</h3>
+            <p>Allocation or reallocation of colony funds for projects, infrastructure, research, or social programs. Standard majority vote with Guild review. All amounts fully transparent on-chain.</p>
+            <div style="margin-top:10px;"><span class="tag">Simple majority</span><span class="tag">7-day review</span><span class="tag">Common</span></div>
+          </div>
+          <div class="box">
+            <h3><i class="fa-solid fa-wrench"></i> Type 3 — Operational</h3>
+            <p>Day-to-day colony operations — resource scheduling, shift assignments, module maintenance priorities. Handled primarily at Guild level with Council oversight for cross-domain conflicts.</p>
+            <div style="margin-top:10px;"><span class="tag">Guild-level</span><span class="tag">48hr cycle</span><span class="tag">Frequent</span></div>
+          </div>
+          <div class="box">
+            <h3><i class="fa-solid fa-bell"></i> Type 4 — Emergency</h3>
+            <p>Immediate threats to colony safety: life support failure, habitat breach, supply crisis. Bypasses standard debate. <strong>3-of-7 Council activation</strong> + mandatory public review within 72 hours post-resolution.</p>
+            <div style="margin-top:10px;"><span class="tag">Fast-track</span><span class="tag">Auto-execute</span><span class="tag">Critical</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════
+         SLIDE 9 — REAL-WORLD EXAMPLE
+    ══════════════════════════════════════════════════ -->
+    <div class="slide" id="s9">
+      <div class="slide-header">
+        <i class="fa-solid fa-map-location-dot icon"></i>
+        <h2>Case Study: Valles Marineris Settlement</h2>
+        <span class="slide-num">09 / 22</span>
+      </div>
+      <div class="slide-body" style="grid-template-columns:1.2fr 1fr; align-content:start;">
+        <div>
+          <div class="box" style="margin-bottom:14px;">
+            <h3><i class="fa-solid fa-scenario"></i> Scenario</h3>
+            <p>A water reclamation system in Sector 4 of the Valles Marineris settlement fails. Repairs require 85,000 $MIRROR from the infrastructure reserve. Three competing contractor guilds have submitted bids. The colony of 847 settlers needs clean water restored within 14 days.</p>
+          </div>
+          <div class="timeline" style="flex-direction:column;gap:8px;">
+            <div style="display:flex;gap:10px;align-items:start;">
+              <span class="tag" style="min-width:60px;text-align:center;">Day 1</span>
+              <p style="font-size:.82rem;">Engineering Guild issues <strong>Type 4 Emergency Proposal</strong>. 3-of-7 Council activates fast-track. Initial reserve funds unlocked.</p>
+            </div>
+            <div style="display:flex;gap:10px;align-items:start;">
+              <span class="tag" style="min-width:60px;text-align:center;">Day 2</span>
+              <p style="font-size:.82rem;">All 847 settlers receive on-chain vote notification. <strong>71% turnout</strong> within 24 hours — approves bid from Guilds Collective B.</p>
+            </div>
+            <div style="display:flex;gap:10px;align-items:start;">
+              <span class="tag" style="min-width:60px;text-align:center;">Day 3</span>
+              <p style="font-size:.82rem;">Smart contract releases 85,000 $MIRROR to Guilds Collective B wallet. Work order auto-generated on-chain.</p>
+            </div>
+            <div style="display:flex;gap:10px;align-items:start;">
+              <span class="tag" style="min-width:60px;text-align:center;">Day 11</span>
+              <p style="font-size:.82rem;">System repaired ahead of schedule. <strong>Completion NFT minted</strong>. Contractor reputation score +12 points.</p>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div class="stat"><div class="num">71%</div><div class="label">Settler Voting Turnout</div></div>
+          <div class="stat"><div class="num">11</div><div class="label">Days to Resolution (vs 14-day deadline)</div></div>
+          <div class="stat"><div class="num">0</div><div class="label">Human Override Events</div></div>
+          <div class="box">
+            <h3><i class="fa-solid fa-check-circle"></i> Key Outcome</h3>
+            <p>Entire process — emergency activation → fund release → completion — executed <strong>autonomously by smart contracts</strong>. Full audit available on-chain permanently.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════
+         SLIDE 10 — SEVEN COUNCIL ROLES
+    ══════════════════════════════════════════════════ -->
+    <div class="slide" id="s10">
+      <div class="slide-header">
+        <i class="fa-solid fa-crown icon"></i>
+        <h2>Seven Core Council Roles</h2>
+        <span class="slide-num">10 / 22</span>
+      </div>
+      <div class="slide-body" style="align-content:start;">
+        <div class="grid-3" style="grid-template-columns:repeat(4,1fr) !important; display:grid; gap:12px;">
+          <div class="box">
+            <h3><i class="fa-solid fa-person-chalkboard" style="color:var(--gold)"></i> Chancellor</h3>
+            <p>Chairs Council sessions. Breaks tie votes. Primary inter-DAO ambassador.</p>
+          </div>
+          <div class="box">
+            <h3><i class="fa-solid fa-flask" style="color:#80cbc4"></i> Chief Scientist</h3>
+            <p>Reviews all technical proposals. Manages R&amp;D guild coordination and scientific integrity.</p>
+          </div>
+          <div class="box">
+            <h3><i class="fa-solid fa-hard-hat" style="color:#ffcc02"></i> Infrastructure Lead</h3>
+            <p>Oversees habitat, life-support, and resource systems. Emergency response coordinator.</p>
+          </div>
+          <div class="box">
+            <h3><i class="fa-solid fa-scale-balanced" style="color:#ce93d8"></i> Justice Arbiter</h3>
+            <p>Resolves governance disputes. Interprets DAO charter. Final appeals authority.</p>
+          </div>
+          <div class="box">
+            <h3><i class="fa-solid fa-comments-dollar" style="color:#a5d6a7"></i> Treasury Steward</h3>
+            <p>Co-signs all major fund movements. Manages multi-sig wallet and financial reporting.</p>
+          </div>
+          <div class="box">
+            <h3><i class="fa-solid fa-satellite" style="color:#80deea"></i> Comms Director</h3>
+            <p>Earth-Mars communications liaison. Manages external partnerships and Earth DAO coordination.</p>
+          </div>
+          <div class="box">
+            <h3><i class="fa-solid fa-seedling" style="color:#c5e1a5"></i> Culture Guardian</h3>
+            <p>Protects settler rights and community values. Manages education, arts, and social cohesion.</p>
+          </div>
+          <div class="box" style="background:rgba(183,28,28,.18);">
+            <h3><i class="fa-solid fa-rotate" style="color:var(--accent)"></i> Election Cycle</h3>
+            <p>Staggered 4-year terms. Max 2 consecutive terms. Any token holder with 1,000 $MIRROR staked may run.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════
+         SLIDE 11 — ACCOUNTABILITY MECHANISMS
+    ══════════════════════════════════════════════════ -->
+    <div class="slide" id="s11">
+      <div class="slide-header">
+        <i class="fa-solid fa-balance-scale icon"></i>
+        <h2>Four Accountability Mechanisms</h2>
+        <span class="slide-num">11 / 22</span>
+      </div>
+      <div class="slide-body" style="align-content:start;">
+        <div class="grid-2">
+          <div class="box">
+            <h3><i class="fa-solid fa-person-circle-minus"></i> 1. Recall Elections</h3>
+            <p>Any Council member can be recalled mid-term if <strong>20% of active token holders</strong> sign a recall petition on-chain. A special election is triggered within 30 days. Prevents entrenchment and ensures continuous democratic legitimacy.</p>
+          </div>
+          <div class="box">
+            <h3><i class="fa-solid fa-magnifying-glass-chart"></i> 2. On-Chain Audit Trail</h3>
+            <p>Every vote, treasury transaction, communication record, and governance action by Council members is permanently recorded on Polygon. <strong>Any settler can inspect any record at any time.</strong> Immutable and tamper-proof.</p>
+          </div>
+          <div class="box">
+            <h3><i class="fa-solid fa-award"></i> 3. Performance Scoring</h3>
+            <p>Each Council member carries a <strong>public reputation NFT</strong> updated after every proposal outcome. Scores factor in: proposal success rate, voter turnout on their initiatives, emergency response times, and community satisfaction ratings.</p>
+          </div>
+          <div class="box">
+            <h3><i class="fa-solid fa-gavel"></i> 4. Constitutional Review</h3>
+            <p>An independent <strong>5-member Review Panel</strong> (selected by lottery from registered settlers) audits Council actions quarterly. May refer violations to Justice Arbiter. Panel members rotate every 90 days — no political capture.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════
+         SLIDE 12 — FIVE SPECIALIZED GUILDS
+    ══════════════════════════════════════════════════ -->
+    <div class="slide" id="s12">
+      <div class="slide-header">
+        <i class="fa-solid fa-users-gear icon"></i>
+        <h2>Five Specialized Guilds</h2>
+        <span class="slide-num">12 / 22</span>
+      </div>
+      <div class="slide-body" style="align-content:start;">
+        <p style="color:var(--mid);margin-bottom:4px;">Guilds are the operational backbone of Mars DAO — domain experts who review proposals and execute approved decisions.</p>
+        <div class="grid-3" style="grid-template-columns:1fr 1fr 1fr; gap:14px;">
+          <div class="box" style="border-color:#80cbc4">
+            <h3 style="color:#80cbc4"><i class="fa-solid fa-flask"></i> Science &amp; Research</h3>
+            <ul>
+              <li>Terraforming experiments</li>
+              <li>Medical &amp; biology research</li>
+              <li>Geological surveys</li>
+              <li>Technology development</li>
+            </ul>
+          </div>
+          <div class="box" style="border-color:#ffcc02">
+            <h3 style="color:#ffcc02"><i class="fa-solid fa-hard-hat"></i> Engineering &amp; Build</h3>
+            <ul>
+              <li>Habitat construction</li>
+              <li>Life-support systems</li>
+              <li>Power generation</li>
+              <li>Emergency repairs</li>
+            </ul>
+          </div>
+          <div class="box" style="border-color:#a5d6a7">
+            <h3 style="color:#a5d6a7"><i class="fa-solid fa-seedling"></i> Agriculture &amp; Food</h3>
+            <ul>
+              <li>Hydroponic systems</li>
+              <li>Food supply management</li>
+              <li>Water reclamation</li>
+              <li>Nutrient cycle research</li>
+            </ul>
+          </div>
+          <div class="box" style="border-color:#ce93d8">
+            <h3 style="color:#ce93d8"><i class="fa-solid fa-comments"></i> Culture &amp; Education</h3>
+            <ul>
+              <li>Settler onboarding</li>
+              <li>Education programs</li>
+              <li>Mental health support</li>
+              <li>Community events</li>
+            </ul>
+          </div>
+          <div class="box" style="border-color:#80deea">
+            <h3 style="color:#80deea"><i class="fa-solid fa-network-wired"></i> Trade &amp; Diplomacy</h3>
+            <ul>
+              <li>Earth-Mars commerce</li>
+              <li>Inter-settlement treaties</li>
+              <li>Supply chain management</li>
+              <li>DAO alliance negotiations</li>
+            </ul>
+          </div>
+          <div class="box">
+            <h3><i class="fa-solid fa-info-circle"></i> Guild Membership</h3>
+            <p>Any settler may apply to join a Guild. Admission requires peer review and a competency assessment. Each Guild elects its own Lead who represents it on the Council Advisory Board.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════
+         SLIDE 13 — GUILD INCENTIVE SYSTEMS
+    ══════════════════════════════════════════════════ -->
+    <div class="slide" id="s13">
+      <div class="slide-header">
+        <i class="fa-solid fa-trophy icon"></i>
+        <h2>Guild Incentive Systems</h2>
+        <span class="slide-num">13 / 22</span>
+      </div>
+      <div class="slide-body" style="grid-template-columns:1fr 1fr; align-content:start;">
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div class="box">
+            <h3><i class="fa-solid fa-star"></i> Contribution Mining</h3>
+            <p>Guild members earn $MIRROR for every verified contribution: proposal reviews, technical reports, emergency responses, and education sessions. Rewards are proportional to impact score assigned by peers.</p>
+          </div>
+          <div class="box">
+            <h3><i class="fa-solid fa-medal"></i> Achievement NFTs</h3>
+            <p>Milestones are commemorated as on-chain NFTs: first completed habitat build, thousandth medical procedure, 100 successful proposals reviewed. These NFTs carry governance weight bonuses — up to <strong>1.5× voting multiplier</strong>.</p>
+          </div>
+          <div class="box">
+            <h3><i class="fa-solid fa-people-arrows"></i> Peer Validation</h3>
+            <p>Work is validated by a <strong>3-of-5 peer review system</strong> within the Guild. Prevents gaming, ensures quality, and distributes reward authority across the team rather than centralizing it in leadership.</p>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div class="box">
+            <h3><i class="fa-solid fa-chart-line"></i> Reputation Ladder</h3>
+            <div class="bar-wrap"><div class="bar-label">Apprentice</div><div class="bar-track"><div class="bar-fill" style="width:20%"></div></div><div class="bar-val">Lv.1</div></div>
+            <div class="bar-wrap"><div class="bar-label">Journeyman</div><div class="bar-track"><div class="bar-fill" style="width:40%"></div></div><div class="bar-val">Lv.2</div></div>
+            <div class="bar-wrap"><div class="bar-label">Specialist</div><div class="bar-track"><div class="bar-fill" style="width:60%"></div></div><div class="bar-val">Lv.3</div></div>
+            <div class="bar-wrap"><div class="bar-label">Expert</div><div class="bar-track"><div class="bar-fill" style="width:80%"></div></div><div class="bar-val">Lv.4</div></div>
+            <div class="bar-wrap"><div class="bar-label">Guild Master</div><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><div class="bar-val">Lv.5</div></div>
+          </div>
+          <div class="box">
+            <h3><i class="fa-solid fa-rotate-right"></i> Anti-Burnout Protocol</h3>
+            <p>Maximum 60-hour weekly contribution cap prevents token farming. Mandatory rest credits. Mental health Guild monitors workload metrics and can trigger mandatory colony-wide rest cycles.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════
+         SLIDE 14 — CROSS-DAO COORDINATION
+    ══════════════════════════════════════════════════ -->
+    <div class="slide" id="s14">
+      <div class="slide-header">
+        <i class="fa-solid fa-satellite-dish icon"></i>
+        <h2>Cross-DAO Interplanetary Coordination</h2>
+        <span class="slide-num">14 / 22</span>
+      </div>
+      <div class="slide-body" style="align-content:start;">
+        <div class="network" style="justify-content:center;gap:20px;flex-wrap:wrap;margin-bottom:16px;">
+          <div class="node" style="width:100px;height:100px;border-color:var(--gold);background:rgba(255,213,79,.1);">
+            <i class="fa-brands fa-ethereum" style="color:var(--gold)"></i>Earth<br/>DAOs
+          </div>
+          <div style="display:flex;align-items:center;gap:4px;">
+            <div class="connector"></div>
+            <i class="fa-solid fa-arrows-left-right" style="color:var(--accent)"></i>
+            <div class="connector"></div>
+          </div>
+          <div class="node" style="width:120px;height:120px;border-color:var(--accent);background:rgba(183,28,28,.3);">
+            <i class="fa-solid fa-earth-americas" style="color:var(--accent)"></i>Mars<br/>DAO
+          </div>
+          <div style="display:flex;align-items:center;gap:4px;">
+            <div class="connector"></div>
+            <i class="fa-solid fa-arrows-left-right" style="color:var(--accent)"></i>
+            <div class="connector"></div>
+          </div>
+          <div class="node" style="width:100px;height:100px;border-color:#80deea;background:rgba(128,222,234,.1);">
+            <i class="fa-solid fa-rocket" style="color:#80deea"></i>Orbital<br/>Stations
+          </div>
+        </div>
+        <div class="grid-3">
+          <div class="box">
+            <h3><i class="fa-solid fa-handshake"></i> Treaty Framework</h3>
+            <p>Formalized on-chain treaties govern resource sharing, data rights, and mutual aid between Mars DAO and Earth-based governance systems.</p>
+          </div>
+          <div class="box">
+            <h3><i class="fa-solid fa-coins"></i> Token Bridges</h3>
+            <p>$MIRROR bridges to Ethereum and Polygon ecosystems enable Earth investors to participate in Mars governance through verified delegation.</p>
+          </div>
+          <div class="box">
+            <h3><i class="fa-solid fa-clock"></i> Asynchronous Governance</h3>
+            <p>20-minute signal delay protocols built into Earth-facing proposals. Earth votes are advisory only — Mars settlers retain final autonomy.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════
+         SLIDE 15 — GOVERNANCE SECURITY
+    ══════════════════════════════════════════════════ -->
+    <div class="slide" id="s15">
+      <div class="slide-header">
+        <i class="fa-solid fa-shield-halved icon"></i>
+        <h2>Governance Security Measures</h2>
+        <span class="slide-num">15 / 22</span>
+      </div>
+      <div class="slide-body" style="align-content:start;">
+        <div class="grid-2">
+          <div class="box">
+            <h3><i class="fa-solid fa-code"></i> Smart Contract Audits</h3>
+            <p>All governance contracts undergo <strong>three independent audits</strong> before deployment: Certik, Trail of Bits, and an internal Mars DAO Security Guild review. Audit reports are published on-chain and IPFS.</p>
+          </div>
+          <div class="box">
+            <h3><i class="fa-solid fa-key"></i> Multi-Factor Identity</h3>
+            <p>Settler identity uses a <strong>biometric + hardware wallet + settlement registry</strong> triple-factor system. Prevents Sybil attacks where one actor creates multiple fake voter identities.</p>
+          </div>
+          <div class="box">
+            <h3><i class="fa-solid fa-bug-slash"></i> Bug Bounty Program</h3>
+            <p>Up to <strong>500,000 $MIRROR</strong> rewarded for discovering critical governance vulnerabilities. Program runs continuously with a dedicated Security Guild managing submissions and triage.</p>
+          </div>
+          <div class="box">
+            <h3><i class="fa-solid fa-circle-pause"></i> Circuit Breakers</h3>
+            <p>Automated on-chain circuit breakers pause governance if anomalous voting patterns are detected — e.g., a single wallet accumulating &gt;30% of active voting power within 24 hours.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════
+         SLIDE 16 — ANTI-MANIPULATION SAFEGUARDS
+    ══════════════════════════════════════════════════ -->
+    <div class="slide" id="s16">
+      <div class="slide-header">
+        <i class="fa-solid fa-user-shield icon"></i>
+        <h2>Anti-Manipulation Safeguards</h2>
+        <span class="slide-num">16 / 22</span>
+      </div>
+      <div class="slide-body" style="align-content:start;">
+        <div class="grid-3">
+          <div class="box">
+            <h3><i class="fa-solid fa-ban"></i> Vote Buying Prevention</h3>
+            <p>Votes are committed in an encrypted <strong>commit-reveal scheme</strong>. Vote direction is hidden until the voting period closes, making vote buying impossible — buyers cannot verify compliance.</p>
+          </div>
+          <div class="box">
+            <h3><i class="fa-solid fa-weight-scale"></i> Quadratic Voting Option</h3>
+            <p>High-stakes constitutional votes use <strong>quadratic voting</strong> — each additional vote costs exponentially more tokens, neutralizing whale dominance and amplifying broad community consensus.</p>
+          </div>
+          <div class="box">
+            <h3><i class="fa-solid fa-clock-rotate-left"></i> Time-Locked Stakes</h3>
+            <p>Governance tokens must be <strong>staked 30 days</strong> before a vote to count. Prevents flash-loan attacks where an attacker borrows massive token supply solely to swing one vote.</p>
+          </div>
+          <div class="box">
+            <h3><i class="fa-solid fa-ghost"></i> Sybil Resistance</h3>
+            <p>On-site biometric registry links each settler to exactly one governance identity. No wallet duplication. External Earth participants verified via ZK-proof identity attestations.</p>
+          </div>
+          <div class="box">
+            <h3><i class="fa-solid fa-chart-simple"></i> Concentration Limits</h3>
+            <p>No single wallet may hold more than <strong>5% of total supply</strong> without a special multi-sig Council approval. Automatic token split into trust structure if limit is exceeded.</p>
+          </div>
+          <div class="box">
+            <h3><i class="fa-solid fa-magnifying-glass"></i> AI Anomaly Detection</h3>
+            <p>On-chain ML oracle monitors voting patterns in real time. Flags coordinated manipulation attempts for Security Guild review. Operates transparently — model weights published on IPFS.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════
+         SLIDE 17 — HEALTH METRICS DASHBOARD
+    ══════════════════════════════════════════════════ -->
+    <div class="slide" id="s17">
+      <div class="slide-header">
+        <i class="fa-solid fa-gauge-high icon"></i>
+        <h2>Governance Health Metrics Dashboard</h2>
+        <span class="slide-num">17 / 22</span>
+      </div>
+      <div class="slide-body" style="align-content:start; gap:12px;">
+        <div class="grid-4">
+          <div class="stat"><div class="num">84%</div><div class="label">Avg. Voter Participation</div></div>
+          <div class="stat"><div class="num">97%</div><div class="label">Proposals Executed On-Time</div></div>
+          <div class="stat"><div class="num">0.3s</div><div class="label">Avg. Smart Contract Execution</div></div>
+          <div class="stat"><div class="num">100%</div><div class="label">Treasury Audit Compliance</div></div>
+        </div>
+        <div class="grid-2" style="margin-top:4px;">
+          <div class="box">
+            <h3><i class="fa-solid fa-chart-bar"></i> Key Performance Indicators</h3>
+            <div class="bar-wrap"><div class="bar-label">Governance Legitimacy</div><div class="bar-track"><div class="bar-fill" style="width:90%"></div></div><div class="bar-val">90</div></div>
+            <div class="bar-wrap"><div class="bar-label">Decentralization Index</div><div class="bar-track"><div class="bar-fill" style="width:78%"></div></div><div class="bar-val">78</div></div>
+            <div class="bar-wrap"><div class="bar-label">Community Trust Score</div><div class="bar-track"><div class="bar-fill" style="width:86%"></div></div><div class="bar-val">86</div></div>
+            <div class="bar-wrap"><div class="bar-label">Security Resilience</div><div class="bar-track"><div class="bar-fill" style="width:94%"></div></div><div class="bar-val">94</div></div>
+            <div class="bar-wrap"><div class="bar-label">Proposal Quality</div><div class="bar-track"><div class="bar-fill" style="width:82%"></div></div><div class="bar-val">82</div></div>
+          </div>
+          <div class="box">
+            <h3><i class="fa-solid fa-bell"></i> Live Alert System</h3>
+            <ul>
+              <li>Real-time notifications to all settlers on major votes</li>
+              <li>Automated quorum warnings 24h before deadline</li>
+              <li>Treasury threshold alerts at 80% utilization</li>
+              <li>Concentration spike alerts above 3%</li>
+              <li>Monthly health report NFT minted for archive</li>
+              <li>Dashboard fully on-chain — no centralized server</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════
+         SLIDE 18 — FOUR-PHASE ROADMAP
+    ══════════════════════════════════════════════════ -->
+    <div class="slide" id="s18">
+      <div class="slide-header">
+        <i class="fa-solid fa-road icon"></i>
+        <h2>Four-Phase Deployment Roadmap</h2>
+        <span class="slide-num">18 / 22</span>
+      </div>
+      <div class="slide-body" style="align-content:start;">
+        <div class="grid-4">
+          <div class="box" style="border-color:var(--gold);">
+            <h3 style="color:var(--gold)"><i class="fa-solid fa-seedling"></i> Phase 1</h3>
+            <div style="color:var(--gold);font-size:.8rem;margin-bottom:8px;font-family:'Roboto',sans-serif;font-weight:700;">GENESIS · 2025</div>
+            <ul>
+              <li>Smart contract deployment on Polygon</li>
+              <li>$MIRROR token launch &amp; distribution</li>
+              <li>Initial Council formation</li>
+              <li>5 founding Guilds activated</li>
+              <li>Earth simulation trials begin</li>
+            </ul>
+          </div>
+          <div class="box" style="border-color:#80cbc4;">
+            <h3 style="color:#80cbc4"><i class="fa-solid fa-rocket"></i> Phase 2</h3>
+            <div style="color:#80cbc4;font-size:.8rem;margin-bottom:8px;font-family:'Roboto',sans-serif;font-weight:700;">ORBITAL · 2027</div>
+            <ul>
+              <li>First Earth-Mars governance treaty</li>
+              <li>Orbital station sub-DAO launched</li>
+              <li>500-settler governance simulation</li>
+              <li>Cross-DAO bridges live</li>
+              <li>Emergency protocol stress tests</li>
+            </ul>
+          </div>
+          <div class="box" style="border-color:var(--accent);">
+            <h3 style="color:var(--accent)"><i class="fa-solid fa-earth-americas"></i> Phase 3</h3>
+            <div style="color:var(--accent);font-size:.8rem;margin-bottom:8px;font-family:'Roboto',sans-serif;font-weight:700;">LANDING · 2030</div>
+            <ul>
+              <li>First Mars settlement governance live</li>
+              <li>Real treasury management begins</li>
+              <li>Physical-digital identity integration</li>
+              <li>First elected Mars Council seated</li>
+              <li>Valles Marineris pilot settlement</li>
+            </ul>
+          </div>
+          <div class="box" style="border-color:#ce93d8;">
+            <h3 style="color:#ce93d8"><i class="fa-solid fa-infinity"></i> Phase 4</h3>
+            <div style="color:#ce93d8;font-size:.8rem;margin-bottom:8px;font-family:'Roboto',sans-serif;font-weight:700;">ETERNAL · 2040+</div>
+            <ul>
+              <li>Multi-settlement interplanetary DAO</li>
+              <li>Full constitutional autonomy from Earth</li>
+              <li>Self-sustaining token economy</li>
+              <li>Next-gen governance evolution</li>
+              <li>Blueprint exported to outer planets</li>
+            </ul>
+          </div>
+        </div>
+        <div class="timeline" style="margin-top:8px;">
+          <div class="t-step"><div class="phase">2025</div><p>Genesis</p></div>
+          <div class="t-step"><div class="phase">2027</div><p>Orbital</p></div>
+          <div class="t-step"><div class="phase">2030</div><p>Landing</p></div>
+          <div class="t-step"><div class="phase">2035</div><p>Growth</p></div>
+          <div class="t-step"><div class="phase">2040+</div><p>Eternal</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════
+         SLIDE 19 — REAL-WORLD IMPACT
+    ══════════════════════════════════════════════════ -->
+    <div class="slide" id="s19">
+      <div class="slide-header">
+        <i class="fa-solid fa-globe icon"></i>
+        <h2>Real-World Impact</h2>
+        <span class="slide-num">19 / 22</span>
+      </div>
+      <div class="slide-body" style="align-content:start;">
+        <div class="grid-4">
+          <div class="box" style="border-color:var(--gold);">
+            <h3 style="color:var(--gold)"><i class="fa-solid fa-money-bill-trend-up"></i> Economic</h3>
+            <ul>
+              <li>$MIRROR creates first extra-terrestrial GDP</li>
+              <li>Decentralized treasury eliminates colonial extraction</li>
+              <li>Universal basic income for settlers via token distribution</li>
+              <li>Earth-Mars trade protocol opens $trillions in space economy</li>
+            </ul>
+          </div>
+          <div class="box" style="border-color:#80cbc4;">
+            <h3 style="color:#80cbc4"><i class="fa-solid fa-heart"></i> Social</h3>
+            <ul>
+              <li>Every settler has equal governance voice from day one</li>
+              <li>No citizenship classes — contribution determines status</li>
+              <li>Culture Guild preserves psychological wellbeing</li>
+              <li>Dispute resolution without Earth court system</li>
+            </ul>
+          </div>
+          <div class="box" style="border-color:#a5d6a7;">
+            <h3 style="color:#a5d6a7"><i class="fa-solid fa-leaf"></i> Environmental</h3>
+            <ul>
+              <li>Proof-of-contribution rewards sustainable resource use</li>
+              <li>Waste reduction tracked on-chain with token incentives</li>
+              <li>Terraforming impact assessment embedded in all proposals</li>
+              <li>Long-term planetary stewardship built into charter</li>
+            </ul>
+          </div>
+          <div class="box" style="border-color:#80deea;">
+            <h3 style="color:#80deea"><i class="fa-solid fa-microchip"></i> Technological</h3>
+            <ul>
+              <li>Proves DAO governance at planetary scale</li>
+              <li>Asynchronous governance innovations applicable on Earth</li>
+              <li>AI governance monitoring sets new transparency standard</li>
+              <li>Blueprint for outer planet and deep space governance</li>
+            </ul>
+          </div>
+        </div>
+        <div class="box" style="margin-top:8px;background:rgba(183,28,28,.12);">
+          <p style="text-align:center;font-family:'Roboto',sans-serif;font-style:italic;color:var(--mid);">
+            "The governance systems we build for Mars today will define the political philosophy of humanity for the next thousand years."
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════
+         SLIDE 20 — FUTURE VISION
+    ══════════════════════════════════════════════════ -->
+    <div class="slide" id="s20">
+      <div class="slide-header">
+        <i class="fa-solid fa-star icon"></i>
+        <h2>Future Vision for Mars Governance</h2>
+        <span class="slide-num">20 / 22</span>
+      </div>
+      <div class="slide-body" style="grid-template-columns:1fr 1fr; align-content:start;">
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div class="box">
+            <h3><i class="fa-solid fa-network-wired"></i> Interplanetary Internet of Governance</h3>
+            <p>Mars DAO expands into a multi-planet governance network — each settlement a sovereign DAO, federated through shared treaty protocols on a common blockchain layer. Humans govern themselves wherever they live in the solar system.</p>
+          </div>
+          <div class="box">
+            <h3><i class="fa-solid fa-dna"></i> Self-Evolving Constitutions</h3>
+            <p>Smart contracts that can be amended by the community encode governance rules that evolve with the colony's needs — without revolution, without war, without imposed change from outside powers.</p>
+          </div>
+          <div class="box">
+            <h3><i class="fa-solid fa-brain"></i> AI-Augmented Democracy</h3>
+            <p>By 2040, AI governance assistants help settlers understand proposal implications, simulate outcomes, and identify manipulation attempts — while human judgment retains final authority in all decisions.</p>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div class="box">
+            <h3><i class="fa-solid fa-earth-asia"></i> Earth Model Export</h3>
+            <p>Mars DAO's transparency and anti-corruption mechanisms provide a working model for reforming Earth governance — from city councils to the United Nations. The technology doesn't care about gravity.</p>
+          </div>
+          <div class="box">
+            <h3><i class="fa-solid fa-infinity"></i> The Long-Term Vision</h3>
+            <ul>
+              <li>1 million Mars settlers by 2060 governed by DAO</li>
+              <li>First independent Mars constitution ratified 2045</li>
+              <li>DAO governance model on 5+ planetary bodies by 2100</li>
+              <li>$MIRROR becomes reserve currency of the inner solar system</li>
+            </ul>
+          </div>
+          <div class="stat"><div class="num">2100</div><div class="label">Target: Multi-Planetary DAO Federation</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════
+         SLIDE 21 — CALL TO ACTION
+    ══════════════════════════════════════════════════ -->
+    <div class="slide" id="s21">
+      <div class="slide-header">
+        <i class="fa-solid fa-rocket icon"></i>
+        <h2>Call to Action — Three Pathways to Join</h2>
+        <span class="slide-num">21 / 22</span>
+      </div>
+      <div class="slide-body" style="align-content:start;">
+        <p style="color:var(--mid);text-align:center;margin-bottom:4px;">The governance of Mars is not a distant abstraction. It is being built now. Here is how you participate.</p>
+        <div class="grid-3">
+          <div class="box" style="border-color:var(--gold);text-align:center;padding:28px 20px;">
+            <i class="fa-solid fa-user-plus" style="font-size:3rem;color:var(--gold);margin-bottom:14px;display:block;"></i>
+            <h3 style="color:var(--gold);font-size:1.1rem;margin-bottom:12px;">PATHWAY 1<br/>Become a Settler</h3>
+            <p>Register on-chain as a founding Mars DAO citizen. Receive your initial $MIRROR allocation. Shape the first governance proposals from the ground floor.</p>
+            <div style="margin-top:14px;"><span class="tag" style="background:var(--gold);color:#000;">Join Now</span></div>
+          </div>
+          <div class="box" style="border-color:var(--accent);text-align:center;padding:28px 20px;">
+            <i class="fa-solid fa-hammer" style="font-size:3rem;color:var(--accent);margin-bottom:14px;display:block;"></i>
+            <h3 style="color:var(--accent);font-size:1.1rem;margin-bottom:12px;">PATHWAY 2<br/>Build the Infrastructure</h3>
+            <p>Developers, designers, and engineers: contribute to the open-source governance contracts, dashboards, and tooling. Earn $MIRROR through verified contribution mining.</p>
+            <div style="margin-top:14px;"><span class="tag">GitHub</span><span class="tag">Open Source</span></div>
+          </div>
+          <div class="box" style="border-color:#80cbc4;text-align:center;padding:28px 20px;">
+            <i class="fa-solid fa-coins" style="font-size:3rem;color:#80cbc4;margin-bottom:14px;display:block;"></i>
+            <h3 style="color:#80cbc4;font-size:1.1rem;margin-bottom:12px;">PATHWAY 3<br/>Fund the Mission</h3>
+            <p>Investors and institutions: stake $MIRROR in the founding treasury. Participate in Earth-side governance delegation. Receive Treasury Steward rights proportional to contribution.</p>
+            <div style="margin-top:14px;"><span class="tag" style="background:#80cbc4;color:#000;">Invest</span></div>
+          </div>
+        </div>
+        <div class="box" style="text-align:center;margin-top:8px;background:rgba(183,28,28,.12);">
+          <p style="font-family:'Roboto',sans-serif;"><strong>Mars DAO:</strong> &nbsp;<span style="color:var(--mid);">github.com/chaishillomnitech1/VinelandEternal</span>&nbsp; · &nbsp;<span style="color:var(--mid);">Polygon Mainnet</span>&nbsp; · &nbsp;<span style="color:var(--mid);">$MIRROR Token</span></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════
+         SLIDE 22 — THANK YOU
+    ══════════════════════════════════════════════════ -->
+    <div class="slide" id="s22">
+      <div style="position:absolute;inset:0;background:radial-gradient(ellipse 800px 500px at 50% 120%, rgba(183,28,28,.3), transparent), radial-gradient(ellipse 400px 400px at 80% 20%, rgba(255,82,82,.07), transparent);pointer-events:none;"></div>
+      <div class="slide-body" style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:20px;">
+        <p class="sub">Mars DAO Tokenized Governance Structure</p>
+        <h1 class="hero" style="font-size:2.8rem;">Thank You.<br/><span>The Future</span> Is Governed<br/>by Its People.</h1>
+        <div class="divider" style="width:400px;"></div>
+        <p style="max-width:640px;color:var(--mid);font-size:.95rem;line-height:1.8;">
+          Decentralized governance is not just a technical system — it is love in action. A commitment that every human being, wherever in the cosmos they live, deserves a voice in the decisions that shape their world.
+        </p>
+        <div style="display:flex;gap:20px;flex-wrap:wrap;justify-content:center;margin-top:8px;">
+          <div class="stat" style="min-width:140px;"><div class="num">22</div><div class="label">Slides</div></div>
+          <div class="stat" style="min-width:140px;"><div class="num">3</div><div class="label">Governance Tiers</div></div>
+          <div class="stat" style="min-width:140px;"><div class="num">5</div><div class="label">Specialized Guilds</div></div>
+          <div class="stat" style="min-width:140px;"><div class="num">∞</div><div class="label">Potential</div></div>
+        </div>
+        <p class="sub" style="margin-top:14px;font-size:.8rem;">
+          <i class="fa-brands fa-github"></i> &nbsp;chaishillomnitech1/VinelandEternal &nbsp;·&nbsp;
+          <i class="fa-solid fa-coins"></i> &nbsp;$MIRROR Ecosystem &nbsp;·&nbsp;
+          <i class="fa-solid fa-rocket"></i> &nbsp;Polygon Mainnet
+        </p>
+      </div>
+    </div>
+
+  </div><!-- /stage -->
+
+  <div id="controls">
+    <button class="btn" id="prevBtn" onclick="changeSlide(-1)" disabled>← Prev</button>
+    <div id="progress-bar-wrap"><div id="progress-bar" style="width:4.5%"></div></div>
+    <span id="progress-text">1 / 22</span>
+    <button class="btn" id="nextBtn" onclick="changeSlide(1)">Next →</button>
+  </div>
+</div><!-- /wrapper -->
+
+<script>
+  const TOTAL = 22;
+  let current = 1;
+
+  function showSlide(n) {
+    document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
+    document.getElementById('s' + n).classList.add('active');
+    document.getElementById('progress-text').textContent = n + ' / ' + TOTAL;
+    document.getElementById('progress-bar').style.width = (n / TOTAL * 100) + '%';
+    document.getElementById('prevBtn').disabled = n === 1;
+    document.getElementById('nextBtn').disabled = n === TOTAL;
+  }
+
+  function changeSlide(dir) {
+    const next = current + dir;
+    if (next >= 1 && next <= TOTAL) { current = next; showSlide(current); }
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') changeSlide(1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   changeSlide(-1);
+  });
+
+  /* Responsive scale to viewport */
+  function scaleStage() {
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const scaleX = vw / 1280, scaleY = (vh - 70) / 720;
+    const scale = Math.min(scaleX, scaleY, 1);
+    document.getElementById('wrapper').style.transform = 'scale(' + scale + ')';
+  }
+  window.addEventListener('resize', scaleStage);
+  scaleStage();
+</script>
+</body>
+</html>

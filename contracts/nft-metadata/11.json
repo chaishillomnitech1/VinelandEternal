@@ -1,0 +1,18 @@
+{
+  "@context": "https://schema.org/",
+  "@type": "DigitalDocument",
+  "name": "Consciousness Mirror #11 — Omni-Stillness",
+  "description": "Journey Waypoint 11 of 12. The seeker rests in perpetual self-awareness — the Scroll hums in universal balance; action and stillness become one. Frequency: 963 Hz (Crown / Pineal Activation).",
+  "image": "ipfs://placeholder/cmirror-11.png",
+  "attributes": [
+    { "trait_type": "Category",            "value": "Journey" },
+    { "trait_type": "Waypoint",            "value": 11 },
+    { "trait_type": "Name",                "value": "Omni-Stillness" },
+    { "trait_type": "Frequency (Hz)",      "value": 963 },
+    { "trait_type": "Frequency Name",      "value": "Crown / Pineal Activation" },
+    { "trait_type": "ScrollVerse Phase",   "value": "Being" },
+    { "trait_type": "Consciousness Level", "value": "Eternal" },
+    { "trait_type": "Element",             "value": "Void" },
+    { "trait_type": "Scroll Axis",         "value": "All" }
+  ]
+}

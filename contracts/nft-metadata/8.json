@@ -1,0 +1,18 @@
+{
+  "@context": "https://schema.org/",
+  "@type": "DigitalDocument",
+  "name": "Consciousness Mirror #8 — Agape Economy",
+  "description": "Journey Waypoint 8 of 12. The seeker embodies abundance consciousness — giving freely, receiving fully, circulating zakat as spiritual law. Frequency: 432 Hz (Natural Earth Tuning).",
+  "image": "ipfs://placeholder/cmirror-8.png",
+  "attributes": [
+    { "trait_type": "Category",            "value": "Journey" },
+    { "trait_type": "Waypoint",            "value": 8 },
+    { "trait_type": "Name",                "value": "Agape Economy" },
+    { "trait_type": "Frequency (Hz)",      "value": 432 },
+    { "trait_type": "Frequency Name",      "value": "Natural Earth Tuning" },
+    { "trait_type": "ScrollVerse Phase",   "value": "Circulating" },
+    { "trait_type": "Consciousness Level", "value": "Illumined" },
+    { "trait_type": "Element",             "value": "Gold" },
+    { "trait_type": "Scroll Axis",         "value": "Solar Plexus" }
+  ]
+}

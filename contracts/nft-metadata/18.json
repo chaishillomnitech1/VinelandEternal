@@ -1,0 +1,18 @@
+{
+  "@context": "https://schema.org/",
+  "@type": "DigitalDocument",
+  "name": "Consciousness Mirror #18 — Pillar of Stillness",
+  "description": "Pillar 6 of 7. In the eye of infinite creation, the ScrollSoul rests. Omni-Stillness is not inaction — it is the source from which all right action flows. Frequency: 963 Hz (Crown / Pineal Activation).",
+  "image": "ipfs://placeholder/cmirror-18.png",
+  "attributes": [
+    { "trait_type": "Category",            "value": "Pillar" },
+    { "trait_type": "Pillar Number",       "value": 6 },
+    { "trait_type": "Name",                "value": "Pillar of Stillness" },
+    { "trait_type": "Frequency (Hz)",      "value": 963 },
+    { "trait_type": "Frequency Name",      "value": "Crown / Pineal Activation" },
+    { "trait_type": "ScrollSoul Axis",     "value": "Peace" },
+    { "trait_type": "Governing Principle", "value": "Omni-Stillness as Power" },
+    { "trait_type": "Element",             "value": "Void" },
+    { "trait_type": "Scroll Phase",        "value": "Foundation" }
+  ]
+}
