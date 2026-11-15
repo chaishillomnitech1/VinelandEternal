@@ -313,7 +313,7 @@
   <div class="wallet-bar" id="wallet-bar">
     <div>Wallet: <span class="addr" id="wb-addr">—</span></div>
     <div>Network: <span id="wb-network">—</span></div>
-    <div>MATIC: <span id="wb-matic">—</span></div>
+    <div>POL: <span id="wb-matic">—</span></div>
     <div>$MIRROR: <span id="wb-mirror">—</span></div>
     <div>CMIRROR NFTs: <span id="wb-nfts">—</span></div>
   </div>
@@ -476,11 +476,12 @@ if (typeof ethers === "undefined") {
 "use strict";
 
 // ── Contract configuration ───────────────────────────────────────────────
-// After running deploy.js, replace these addresses with deployments/mumbai.json values.
+// After a verified Amoy deployment, populate addresses from the signed deployment manifest.
+// A provider RPC URL may be injected by the hosting environment; no public fallback is used.
 const CONFIG = {
-  chainId:   80001,
-  chainName: "Mumbai (Polygon Testnet)",
-  rpcUrl:    "https://rpc-mumbai.maticvigil.com",
+  chainId:   80002,
+  chainName: "Polygon Amoy",
+  rpcUrl:    window.SCROLLVERSE_AMOY_RPC_URL || "",
 
   addresses: {
     MirrorToken:            "0x0000000000000000000000000000000000000000",
@@ -591,7 +592,7 @@ async function connectWallet() {
     signer   = await provider.getSigner();
     userAddress = await signer.getAddress();
 
-    // Switch to / add Mumbai if needed
+    // Switch to Polygon Amoy if it is already configured in the wallet.
     try {
       await window.ethereum.request({
         method: "wallet_switchEthereumChain",
@@ -599,23 +600,43 @@ async function connectWallet() {
       });
     } catch (switchErr) {
       if (switchErr.code === 4902) {
+        if (!CONFIG.rpcUrl) {
+          alert("Polygon Amoy is not configured in this wallet. Add chain ID 80002 manually using your trusted RPC provider, then reconnect. No public RPC fallback is supplied.");
+          return;
+        }
         await window.ethereum.request({
           method: "wallet_addEthereumChain",
           params: [{
             chainId:         "0x" + CONFIG.chainId.toString(16),
             chainName:       CONFIG.chainName,
             rpcUrls:         [CONFIG.rpcUrl],
-            nativeCurrency:  { name: "MATIC", symbol: "MATIC", decimals: 18 },
-            blockExplorerUrls: ["https://mumbai.polygonscan.com"],
+            nativeCurrency:  { name: "POL", symbol: "POL", decimals: 18 },
+            blockExplorerUrls: ["https://amoy.polygonscan.com"],
           }],
         });
+      } else {
+        throw switchErr;
       }
     }
 
-    // Re-acquire provider/signer after network switch
+    // Re-acquire provider/signer after network switch and verify the actual chain.
     provider = new ethers.BrowserProvider(window.ethereum);
+    const connectedNetwork = await provider.getNetwork();
+    if (connectedNetwork.chainId !== BigInt(CONFIG.chainId)) {
+      throw new Error("Wallet is not connected to Polygon Amoy (chain ID 80002).");
+    }
     signer   = await provider.getSigner();
     userAddress = await signer.getAddress();
+
+    const zeroAddress = "0x0000000000000000000000000000000000000000";
+    const contractsConfigured = Object.values(CONFIG.addresses).every(
+      (address) => /^0x[a-fA-F0-9]{40}$/.test(address) && address.toLowerCase() !== zeroAddress
+    );
+    if (!contractsConfigured) {
+      document.getElementById("mint-btn").disabled = true;
+      alert("Wallet connected to Polygon Amoy. Contract addresses are still placeholders; minting and staking remain disabled until verified deployment addresses are published.");
+      return;
+    }
 
     mirrorContract  = new ethers.Contract(CONFIG.addresses.MirrorToken,            MIRROR_ABI,  signer);
     nftContract     = new ethers.Contract(CONFIG.addresses.ConsciousnessMirrorNFT, NFT_ABI,     signer);
@@ -630,7 +651,7 @@ async function connectWallet() {
     document.getElementById("wb-addr").textContent = shortAddr(userAddress);
 
     const network = await provider.getNetwork();
-    document.getElementById("wb-network").textContent = network.name || `Chain ${network.chainId}`;
+    document.getElementById("wb-network").textContent = network.chainId === 80002n ? "Polygon Amoy" : network.name || `Chain ${network.chainId}`;
 
     await refreshWalletBar();
     await loadMintStats();
