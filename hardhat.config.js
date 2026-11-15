@@ -1,69 +1,52 @@
 require("@nomicfoundation/hardhat-toolbox");
 require("dotenv").config();
 
+const deployerAccounts = process.env.DEPLOYER_PRIVATE_KEY
+  ? [process.env.DEPLOYER_PRIVATE_KEY]
+  : [];
+const networks = {
+  localhost: { url: "http://127.0.0.1:8545" },
+};
+
+// Polygon's public Mumbai, Amoy, and mainnet RPC defaults are not used.
+// Configure a maintained provider endpoint explicitly in the secure runtime.
+if (process.env.AMOY_RPC_URL) {
+  networks.polygonAmoy = { url: process.env.AMOY_RPC_URL, accounts: deployerAccounts, chainId: 80002 };
+}
+if (process.env.POLYGON_RPC_URL) {
+  networks.polygon = { url: process.env.POLYGON_RPC_URL, accounts: deployerAccounts, chainId: 137 };
+}
+if (process.env.SEPOLIA_RPC_URL) {
+  networks.sepolia = { url: process.env.SEPOLIA_RPC_URL, accounts: deployerAccounts, chainId: 11155111 };
+}
+
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
   solidity: {
     version: "0.8.24",
-    settings: {
-      optimizer: {
-        enabled: true,
-        runs: 200,
-      },
-    },
+    settings: { optimizer: { enabled: true, runs: 200 } },
   },
-
-  networks: {
-    // ── Local development ──────────────────────────────────────────────────
-    localhost: {
-      url: "http://127.0.0.1:8545",
-    },
-
-    // ── Polygon Mainnet ───────────────────────────────────────────────────────
-    polygon: {
-      url: process.env.POLYGON_RPC_URL || "https://polygon-rpc.com",
-      accounts:
-        process.env.DEPLOYER_PRIVATE_KEY !== undefined
-          ? [process.env.DEPLOYER_PRIVATE_KEY]
-          : [],
-      chainId: 137,
-    },
-
-    // ── Mumbai (Polygon testnet) ───────────────────────────────────────────
-    // Set MUMBAI_RPC_URL and DEPLOYER_PRIVATE_KEY in .env
-    mumbai: {
-      url: process.env.MUMBAI_RPC_URL || "https://rpc-mumbai.maticvigil.com",
-      accounts:
-        process.env.DEPLOYER_PRIVATE_KEY !== undefined
-          ? [process.env.DEPLOYER_PRIVATE_KEY]
-          : [],
-      chainId: 80001,
-    },
-
-    // ── Sepolia testnet (optional secondary target) ────────────────────────
-    sepolia: {
-      url: process.env.SEPOLIA_RPC_URL || "",
-      accounts:
-        process.env.DEPLOYER_PRIVATE_KEY !== undefined
-          ? [process.env.DEPLOYER_PRIVATE_KEY]
-          : [],
-      chainId: 11155111,
-    },
-  },
-
-  // ── Etherscan / Polygonscan verification ──────────────────────────────────
+  networks,
   etherscan: {
     apiKey: {
-      polygonMumbai: process.env.POLYGONSCAN_API_KEY || "",
-      polygon:       process.env.POLYGONSCAN_API_KEY || "",
-      sepolia:       process.env.ETHERSCAN_API_KEY   || "",
+      polygonAmoy: process.env.POLYGONSCAN_API_KEY || "",
+      polygon: process.env.POLYGONSCAN_API_KEY || "",
+      sepolia: process.env.ETHERSCAN_API_KEY || "",
     },
+    customChains: [
+      {
+        network: "polygonAmoy",
+        chainId: 80002,
+        urls: {
+          apiURL: "https://api-amoy.polygonscan.com/api",
+          browserURL: "https://amoy.polygonscan.com",
+        },
+      },
+    ],
   },
-
-  // ── Gas reporter ──────────────────────────────────────────────────────────
   gasReporter: {
-    enabled:  process.env.REPORT_GAS === "true",
+    enabled: process.env.REPORT_GAS === "true",
     currency: "USD",
-    token:    "MATIC",
+    token: "POL",
   },
 };
