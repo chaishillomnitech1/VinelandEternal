@@ -632,6 +632,13 @@ async function connectWallet() {
     const contractsConfigured = Object.values(CONFIG.addresses).every(
       (address) => /^0x[a-fA-F0-9]{40}$/.test(address) && address.toLowerCase() !== zeroAddress
     );
+    const connectButton = document.getElementById("connect-btn");
+    connectButton.textContent = shortAddr(userAddress);
+    connectButton.classList.add("connected");
+    document.getElementById("wallet-bar").classList.add("show");
+    document.getElementById("wb-addr").textContent = shortAddr(userAddress);
+    document.getElementById("wb-network").textContent = "Polygon Amoy";
+
     if (!contractsConfigured) {
       document.getElementById("mint-btn").disabled = true;
       alert("Wallet connected to Polygon Amoy. Contract addresses are still placeholders; minting and staking remain disabled until verified deployment addresses are published.");
