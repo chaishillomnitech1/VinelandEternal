@@ -11,7 +11,7 @@ const networks = {
 // Polygon's public Mumbai, Amoy, and mainnet RPC defaults are not used.
 // Configure a maintained provider endpoint explicitly in the secure runtime.
 if (process.env.AMOY_RPC_URL) {
-  networks.amoy = { url: process.env.AMOY_RPC_URL, accounts: deployerAccounts, chainId: 80002 };
+  networks.polygonAmoy = { url: process.env.AMOY_RPC_URL, accounts: deployerAccounts, chainId: 80002 };
 }
 if (process.env.POLYGON_RPC_URL) {
   networks.polygon = { url: process.env.POLYGON_RPC_URL, accounts: deployerAccounts, chainId: 137 };
